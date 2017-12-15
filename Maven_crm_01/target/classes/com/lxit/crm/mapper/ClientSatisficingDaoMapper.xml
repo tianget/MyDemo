@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crm.dao.ClientSatisficingDao">
+	<select id="getPlanCount" resultType="int" parameterType="int">
+		select count(1) from client_satisficing
+	</select>
+	<select id="getPlans" parameterType="Map" resultType="ClientSatisficing">      
+        select s.said as id,m.encode as encode,m.`name` as name,m.sex as sex,m.`status` as status,m.type as type,s.time as time,s.quality as quality,s.serve as serve,s.benefit as benefit,s.overall as overall,
+	        (select count(1) from `order` o
+			LEFT JOIN client_member m1
+			on o.userid=m1.mid
+			where o.ostatus !='等待收货' and m1.mid=m.mid) as number,s.feedback as feedback
+		FROM client_satisficing s
+		LEFT JOIN client_member m
+		ON s.mid=m.mid 
+		order by s.time desc
+        limit #{pageIndex},#{pageSize}
+	</select>
+	
+	<select id="getSatisficing" resultType="ClientSatisficing" parameterType="int">
+	    select s.said as id,m.mid as mid,m.encode,m.name,m.sex,m.type,m.`status`, 
+	    (select count(1) from `order` o
+			LEFT JOIN client_member m1
+			on o.userid=m1.mid
+			where o.ostatus !='等待收货' and m1.mid=m.mid) as number,
+		s.quality,s.serve,s.benefit,s.overall,s.feedback 
+	    from client_satisficing s
+	    left join client_member m
+	    on s.mid=m.mid
+	    where said=#{id}
+	</select>
+	
+	<insert id="addSatisficing" parameterType="ClientSatisficing">
+	   insert into client_satisficing (quality,serve,benefit,overall,feedback,time,mid) values (#{quality},#{serve},#{benefit},#{overall},#{feedback},#{time},#{mid});
+	</insert>
+	
+	<update id="updateSatisficing" parameterType="ClientSatisficing">
+	  update client_satisficing set   
+	  quality=#{quality},serve=#{serve},benefit=#{benefit},overall=#{overall},feedback=#{feedback}
+	  where mid = #{mid}
+	</update>
+	
+	<delete id="deleteSatisficing" parameterType="int">
+	  delete from client_satisficing where said=#{id}
+	</delete>
+	
+	<select id="getMember" resultType="ClientSatisficing" parameterType="int">
+	    select m.mid,m.encode,m.`name`,m.sex,m.type,m.`status`,count(o.userid) as number from client_member m 
+		LEFT JOIN `order` o
+		on o.userid=m.mid
+		LEFT JOIN staff s
+		on s.sid=m.sid
+		LEFT JOIN order_goods g
+   		on o.oid=g.oid
+		where o.ostatus=3 and m.mid=#{mid}
+		GROUP BY o.userid
+		order by m.mid desc
+	</select>
+	
+	<select id="getMembers" resultType="Client_member">
+	   <!--  select m.mid as mid,m.`name` as name from client_member m  -->
+		select m.mid,m.`name` from client_member m 
+			LEFT JOIN `order` o
+			on o.userid=m.mid
+			LEFT JOIN staff s
+			on s.sid=m.sid
+			LEFT JOIN order_goods g
+	   		on o.oid=g.oid
+			where o.ostatus=3
+			GROUP BY o.userid
+			order by m.mid desc
+	</select>
+	
+	<select id="getMembersTwo" resultType="ClientSatisficing" parameterType="int">
+	    select m.mid,m.encode as encode,m.`name`,m.sex as sex,m.type as type,m.`status` as status,count(o.userid) as number from client_member m 
+			LEFT JOIN `order` o
+			on o.userid=m.mid
+			LEFT JOIN staff s
+			on s.sid=m.sid
+			LEFT JOIN order_goods g
+	   		on o.oid=g.oid
+			where o.ostatus=3 and m.mid=#{mid}
+			GROUP BY o.userid
+			order by m.mid desc
+	</select>
+</mapper>

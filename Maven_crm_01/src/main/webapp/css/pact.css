@@ -1,0 +1,50 @@
+@CHARSET "UTF-8";
+
+#pact_script{
+	font-size:10px;
+	font-weight:bold;
+	text-align:right;
+}
+
+#pact_input{
+	text-align:left;
+}
+
+.point_red{
+		padding-left:5px;
+		color: red;
+}
+
+/* #pactTable{
+	width:900px;
+	height:800px;
+	margin: 0 auto;
+	margin-top: 80px;
+	padding-left: 90px;
+	padding-right: 130px;
+	font-weight: bold;
+} */
+/* .pactTable tr{
+	border-collapse: separate;
+	line-height:25px;
+}
+.planCoding{
+	
+	padding:30px;
+}
+.pactTurn{
+	font-size:13px;
+	font-weight:bold;	字体加粗 
+	
+}
+.point_red{
+		padding-left:5px;
+		color: red;
+}
+.pactLeft{
+	text-align:top;
+	font-size:13px;
+	font-weight:bold;	字体加粗 
+	padding-left: 40px;
+} */
+

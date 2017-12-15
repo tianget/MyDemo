@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crm.dao.ClientAllotDao">
+	<select id="getRname" resultType="String" parameterType="int">
+		select r.rname from role r
+		LEFT JOIN staff s
+		on r.rid=s.rid
+		where s.sid =#{id}
+	</select>
+	<select id="getPlanCount" resultType="int" parameterType="int">
+		select count(1) from client_allot a
+		<!-- LEFT JOIN staff s
+		on a.staff_id=s.sid
+		where s.sid =#{id} -->
+	</select>
+	<select id="rgetPlanCount" resultType="int" parameterType="int">
+		select count(1) from client_allot a
+		LEFT JOIN staff s
+		on a.staff_id=s.sid
+		LEFT JOIN role r
+  	    on s.rid=r.rid
+		where s.sid =#{id} and r.rname='销售代表'
+	</select>
+	<select id="getPlans" parameterType="Map" resultType="Client_allot">      
+        select m.mid as id,m.`name`,m.sex,m.type,a.`condition`,a.allot,a.date,s.`name` as staff_id from client_allot a
+		LEFT JOIN staff s
+		on a.staff_id=s.sid
+	    LEFT JOIN client_member m
+	    on a.mid=m.mid
+		<!-- where s.sid =#{id} -->
+        order by a.aid desc
+        limit #{pageIndex},#{pageSize}
+	</select>
+	<select id="rgetPlans" parameterType="Map" resultType="Client_allot">      
+        select m.mid as id,m.`name`,m.sex,m.type,a.`condition`,a.allot,a.date,s.`name` as staff_id from client_allot a
+		LEFT JOIN staff s
+		on a.staff_id=s.sid
+	    LEFT JOIN client_member m
+	    on a.mid=m.mid
+	    LEFT JOIN role r
+  	    on s.rid=r.rid
+		where s.sid =#{id} and r.rname='销售代表'
+        order by a.aid desc
+        limit #{pageIndex},#{pageSize}
+	</select>
+	
+<!-- 	<select id="getDate" resultMap="plans">
+		select c.pid,c.`name`,c.`month`,c.initDate,c.finishDate,s.`name` from client_plan c
+		LEFT JOIN staff s
+		on c.s_id=s.sid
+		where s.sid =#{id}
+		and c.`month`=#{month}
+        order by c.pid desc
+	</select> -->
+	
+	<insert id="setMember" parameterType="Client_member">
+	    insert into client_member (encode,name,sex,birth,type,status,phone,workPhone,email,familyPhone,address,remarks,enteringDate,sid) values(#{encode},#{name},#{sex},#{birth},#{type},#{status},#{phone},#{workPhone},#{email},#{familyPhone},#{address},#{remarks},#{recordDate},#{sid});
+	</insert>
+	
+	<insert id="addAllot" parameterType="Client_allot">
+	    insert into client_allot (mid,`condition`,allot,date,sid,staff_id) values (#{mid},#{condition},#{allot},#{date},#{sid},#{staffid});
+	</insert>
+	
+	<select id="getMember" resultType="Client_member" parameterType="int">
+		select mid,encode,name,sex,birth,type,status,phone,workPhone,email,familyPhone,address,remarks from client_member
+		where mid =#{mid}
+	</select>
+	
+	<select id="getMember2" resultType="Client_member" parameterType="String">
+		select mid,encode,name,sex,birth,type,status,phone,workPhone,email,familyPhone,address,remarks,enteringDate,sid from client_member
+		where enteringDate =#{enteringDate}
+	</select>
+	
+	<update id="updateMember" parameterType="Client_member">
+	  update client_member set   
+	  encode=#{encode},name=#{name},sex=#{sex},birth=#{birth},type=#{type},status=#{status},phone=#{phone},workPhone=#{workPhone},email=#{email},familyPhone=#{familyPhone},address=#{address},remarks=#{remarks}
+	  where mid = #{mid}
+	</update>
+	
+	<select id="getStaff" resultType="Staff">
+	   select sid,`name` FROM staff 
+	   where rid=2
+	</select>
+	
+	<update id="setAllotd" parameterType="Client_allot">
+	    update client_allot set
+	    sid=#{sid},allot='已分配'
+	    where mid=#{mid}
+	</update>
+</mapper>

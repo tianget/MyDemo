@@ -1,0 +1,415 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crm.dao.SystemSettingDao">
+	<resultMap type="Role" id="roleMap">
+		<id column="rid" property="rid" />
+		<result column="rcoding" property="rcoding" />
+		<result column="rname" property="rname" />
+		<result column="czid" property="czid" />
+		<result column="did" property="did" />
+		<result column="rdate" property="rdate" />
+		<result column="rremark" property="rremark" />
+		<result column="departmentName" property="departmentName" />
+		<result column="caozuoName" property="caozuoName" />
+		<association property="department" javaType="Department"
+			column="did">
+			<id column="did" property="did" />
+			<result column="dcoding" property="dcoding" />
+			<result column="dshortname" property="dshortname" />
+			<result column="ddate" property="ddate" />
+			<result column="czid" property="czid" />
+			<result column="dallname" property="dallname" />
+			<result column="dintro" property="dintro" />
+			<result column="dremark" property="dremark" />
+		</association>
+	</resultMap>
+	<resultMap type="power" id="powerMap">
+		<id column="id" property="id" />
+		<result column="text" property="text" />
+		<result column="state" property="state" />
+		<result column="url" property="url" />
+		<result column="iconCls" property="iconCls" />
+		<result column="nid" property="nid" />
+	</resultMap>
+	<resultMap type="Staff" id="staffMap">
+		<id column="sid" property="sid" />
+		<result column="name" property="name" />
+		<result column="sex" property="sex" />
+		<result column="sstate" property="sstate" />
+		<result column="did" property="did" />
+		<result column="rid" property="rid" />
+		<result column="password" property="password" />
+		<result column="sremark" property="sremark" />
+		<result column="sdate" property="sdate" />
+		<result column="czid" property="czid" />
+		<result column="nusername" property="nusername" />
+		<result column="iphonenumber" property="iphonenumber" />
+		<result column="caoName" property="caoName" />
+		<result column="departmentName" property="departmentName" />
+		<result column="jName" property="jName" />
+		<association property="role" javaType="Role" column="rid">
+			<id column="rid" property="rid" />
+			<result column="rcoding" property="rcoding" />
+			<result column="rname" property="rname" />
+			<result column="czid" property="czid" />
+			<result column="did" property="did" />
+			<result column="rdate" property="rdate" />
+			<result column="rremark" property="rremark" />
+			<association property="department" javaType="Department"
+				column="did">
+				<id column="did" property="did" />
+				<result column="dcoding" property="dcoding" />
+				<result column="dshortname" property="dshortname" />
+				<result column="ddate" property="ddate" />
+				<result column="czid" property="czid" />
+				<result column="dallname" property="dallname" />
+				<result column="dintro" property="dintro" />
+				<result column="dremark" property="dremark" />
+			</association>
+		</association>
+	</resultMap>
+	<resultMap type="Notice" id="noticeMap">
+		<id column="notice_id" property="noticeId" />
+		<result column="notice_coding" property="noticeCoding" />
+		<result column="notice_type" property="noticeType" />
+		<result column="notice_title" property="noticeTitle" />
+		<result column="notice_time" property="noticeTime" />
+		<result column="notice_content" property="noticeContent" />
+		<result column="sid" property="sid" />
+		<result column="departmentName" property="departmentName" />
+		<result column="name" property="name" />
+		<result column="noticeTypeText" property="noticeTypeText" />
+	</resultMap>
+	<select id="getDepartment" resultType="Department">
+		select * from department
+	</select>
+	<select id="getRoleCount" resultType="int">
+		select count(1) from role
+	</select>
+
+	<select id="getRoleCountByTitle" resultType="int" parameterType="java.lang.String">
+		select count(1) from role where rname like #{0};
+	</select>
+
+	<select id="getAllRole" parameterType="java.util.Map" resultMap="roleMap">
+		select r.rid,r.rname,r.rcoding,s.name
+		caozuoname,r.rdate,r.rremark,d.dallname as departmentName
+		from role
+		r,department d,staff s where r.did=d.did and s.sid=r.czid
+		<if test="title!=null">
+			and r.rname like #{title}
+		</if>
+		order by r.rdate desc
+		LIMIT
+		#{pageIndex},#{pageSize}
+	</select>
+	<insert id="insertRole" parameterType="Role">
+		insert into role
+		(rcoding,rname,czid,did,rdate,rremark)
+		values(#{rcoding},#{rname},#{czid},#{did},#{rdate},#{rremark})
+	</insert>
+	<delete id="deleteRoleById" parameterType="int">
+		delete from role where
+		rid = #{0}
+	</delete>
+
+	<select id="selectRoleById" parameterType="int" resultMap="roleMap">
+		select
+		r.rid,r.rcoding,r.did,r.rdate,r.czid,r.rname,d.ddate,d.dshortname as
+		departmentName,r.rremark from role r,department d where r.did=d.did
+		and rid = #{rid};
+	</select>
+
+	<update id="updateRole" parameterType="Role">
+		update role set
+		rname=#{rname},did=#{did},rdate=#{rdate},rremark=#{rremark}
+		where
+		rid=#{rid}
+	</update>
+	<select id="selectPower" resultMap="powerMap" parameterType="Integer">
+		select * from power where nid = #{0}
+	</select>
+
+	<delete id="deleteRid" parameterType="int">
+	delete from role_power where rid=#{0}
+	</delete>
+
+	<insert id="insertImpower" parameterType="int">
+		insert into role_power
+		values(#{0},#{1})
+	</insert>
+
+	<!-- 查询所有的部门 -->
+	<select id="getAllDepartment" parameterType="java.util.Map"
+		resultType="Department">
+		select
+		d.did,d.czid,d.dallname,d.dcoding,d.ddate,d.dintro,d.dnid,d.dremark,d.dshortname,s.`name`
+		as caoName from department d,staff s where d.czid=s.sid
+		<if test="title!=null">
+			and d.dshortname like #{title}
+		</if>
+		order by d.ddate desc
+		LIMIT #{pageIndex},#{pageSize}
+	</select>
+	<select id="getDepartmentCount" resultType="int">
+		select count(1) from
+		department
+	</select>
+
+	<select id="getDePartmentCountByTitle" resultType="int"
+		parameterType="java.lang.String">
+		select count(1) from department where dshortname like
+		#{0};
+	</select>
+
+	<insert id="insertDepartment" parameterType="Department">
+		insert into
+		department(dcoding,dshortname,ddate,dallname,dintro,dremark,dnid,czid)
+		values(#{dcoding},#{dshortname},#{ddate},#{dallname},#{dintro},#{dremark},#{dnid},#{czid})
+	</insert>
+
+	<delete id="deleteDepartmentById" parameterType="int">
+		delete from
+		department where did = #{did}
+	</delete>
+
+	<select id="updateDepartmentById" parameterType="int"
+		resultType="Department">
+		select * from department where did = #{did}
+	</select>
+
+	<update id="updateDepartment" parameterType="Department">
+		update department
+		set
+		dcoding=#{dcoding},dshortname=#{dshortname},ddate=#{ddate},
+		dallname=#{dallname},dintro=#{dintro},dremark=#{dremark},dnid=#{dnid},czid=#{czid}
+		where did=#{did}
+	</update>
+	<update id="updateStaffNusername" parameterType="java.util.Map">
+		update staff set
+		nusername=#{name} where sid=#{id}
+	</update>
+	<update id="updateStaffIphone" parameterType="java.util.Map">
+		update staff set
+		iphonenumber=#{number} where sid=#{id}
+	</update>
+
+	<select id="selectPassword" resultType="Staff" parameterType="java.util.Map">
+		select * from staff where password = #{0} and sid = #{1}
+	</select>
+
+	<update id="updatePassword" parameterType="java.util.Map">
+		update staff set
+		password =#{password} where sid=#{id}
+	</update>
+
+	<select id="getStaffCount" resultType="int">
+		select count(1) from staff
+	</select>
+	<select id="getStaffCountByTitle" resultType="int"
+		parameterType="java.lang.String">
+		select count(1) from staff where name like #{0};
+	</select>
+	<select id="selectAllStaff" parameterType="java.util.Map"
+		resultMap="staffMap">
+		select
+		s.sid,s.name,s.sex,(select dshortname from department d where
+		s.did=d.did)as
+		departmentName,r.rname as
+		jName,s.sstate,s.sdate,r.rid,d.did,r.rdate,d.ddate,
+		(select `name` from
+		staff where sid=czid) as caoName
+		from staff s left join role r on
+		s.rid=r.rid left join department d on
+		r.did=d.did where 1=1
+		<if test="title!=null">
+			and s.name like #{title}
+		</if>
+		order by s.sdate desc
+		limit #{pageIndex},#{pageSize}
+	</select>
+
+	<insert id="insertStaff" parameterType="Staff">
+		insert into staff
+		(name,sex,sstate,did,sremark,sdate,nusername,czid,iphonenumber)
+		values(#{name},#{sex},#{sstate},#{did},#{sremark},#{sdate},#{nusername},#{czid},#{iphonenumber})
+	</insert>
+
+	<delete id="deleteStaff" parameterType="int">
+		delete from staff where
+		sid = #{0}
+	</delete>
+
+	<select id="updateStaffById" parameterType="int" resultType="Staff">
+		select * from staff where sid=#{0}
+	</select>
+	<update id="updateStaff" parameterType="Staff">
+		update staff set
+		name=#{name},sex=#{sex},
+		sstate=#{sstate},did=#{did},iphonenumber=#{iphonenumber},sremark=#{sremark},
+		sdate=#{sdate},czid=#{czid} where sid=#{sid}
+	</update>
+
+	<select id="seeStaffById" resultType="Staff" parameterType="int">
+		select * from staff where sid=#{0};
+	</select>
+	<update id="updateRid" parameterType="int">
+		update staff set rid=#{0}
+		where sid=#{1}
+	</update>
+
+	<select id="getAllNoticeList" parameterType="java.util.Map"
+		resultMap="noticeMap">
+		select n.*,d.dshortname as departmentName,s.name as
+		name
+		from notice
+		n,department d,staff s where n.sid=s.sid and s.did=d.did
+		<if test="title!=null">
+			and notice_title like #{title}
+		</if>
+		order by n.notice_time desc
+		limit #{pageIndex},#{pageSize}
+	</select>
+
+	<select id="getNoticeCount" resultType="int">
+		select count(1) from
+		notice
+	</select>
+	<select id="getNoticeCountByTitle" resultType="int"
+		parameterType="java.lang.String">
+		select count(1) from notice where notice_title like #{0}
+	</select>
+
+	<select id="getAllNoticeType" resultType="Notice_type">
+		select * from
+		notice_type
+	</select>
+
+	<insert id="insertNoticeAll" parameterType="Notice">
+		insert into
+		notice(notice_coding,notice_type,notice_title,notice_time,notice_content,sid)
+		values(#{noticeCoding},#{noticeType},#{noticeTitle},#{noticeTime},#{noticeContent},#{sid})
+	</insert>
+
+	<delete id="deleteNoticeById" parameterType="int">
+		delete from notice
+		where notice_id=#{0}
+	</delete>
+
+	<select id="seeNoticeById" parameterType="int" resultMap="noticeMap">
+		select
+		n.sid,n.notice_id,n.notice_coding,n.notice_type,n.notice_title,n.notice_time,n.notice_content
+		,s.name as name,nt.type_text as noticeTypeText
+		from notice
+		n,notice_type nt,staff s where n.sid=s.sid and
+		n.notice_type=nt.type_id
+		and notice_id=#{0}
+	</select>
+
+	<select id="updateNoticeById" resultMap="noticeMap"
+		parameterType="int">
+		select
+		n.sid,n.notice_id,n.notice_coding,n.notice_type,n.notice_title,n.notice_time,n.notice_content
+		,s.name as name,nt.type_text as noticeTypeText
+		from notice
+		n,notice_type nt,staff s where n.sid=s.sid and
+		n.notice_type=nt.type_id
+		and notice_id=#{0}
+	</select>
+
+	<update id="updateNoticeStart" parameterType="Notice">
+		update notice set
+		notice_type=#{noticeType},notice_title=#{noticeTitle},notice_content=#{noticeContent}
+		notice_time=#{noticeTime} where notice_id=#{noticeId}
+	</update>
+
+	<select id="getAllBaseList" parameterType="java.util.Map"
+		resultType="Base">
+		select
+		b.baseid,b.basecoding,b.basevalue,b.basedesc,b.baseremark,b.basetime,s.sid,s.name
+		as tname from base b,staff s where b.sid=s.sid
+		<if test="title!=null">
+			and b.basecoding like #{title}
+		</if>
+		order by b.basetime desc
+		limit #{pageIndex},#{pageSize}
+	</select>
+	<select id="getBaseCount" resultType="int">
+		select count(1) from base
+	</select>
+	<select id="getBaseCountByTitle" parameterType="java.lang.String"
+		resultType="int">
+		select count(1) from base where basecoding like #{0}
+	</select>
+
+	<insert id="insertBases" parameterType="Base">
+		insert into
+		base(basecoding,basevalue,basedesc,baseremark,sid,basetime)
+		values
+		(#{basecoding},#{basevalue},#{basedesc},#{baseremark},#{sid},#{basetime})
+	</insert>
+
+	<delete id="deleteBases" parameterType="int">
+		delete from base where
+		baseid=#{0}
+	</delete>
+	<select id="updateBaseById" parameterType="int" resultType="Base">
+		select * from base where baseid=#{0}
+	</select>
+	<update id="updateBase" parameterType="Base">
+		update base set
+		basecoding=#{basecoding},basevalue=#{basevalue},basedesc=#{basedesc},
+		baseremark=#{baseremark},sid=#{sid},basetime=#{basetime} where
+		baseid=#{baseid}
+	</update>
+
+	<select id="getAllDataList" parameterType="java.util.Map"
+		resultType="Data_dictionary">
+		select
+		dd.dataid,dd.dataname,dd.datacoding,dd.datavalue,dd.dataremark,dd.datatime,s.name
+		as sname
+		from data_dictionary dd,staff s where dd.sid=s.sid
+		<if test="title!=null">
+			and dd.datacoding like #{title}
+		</if>
+		order by dd.dataname desc
+		limit #{pageIndex},#{pageSize}
+	</select>
+	<select id="getDataCount" resultType="int">
+		select count(1) from
+		data_dictionary
+	</select>
+	<select id="getDataCountByTitle" parameterType="java.lang.String"
+		resultType="int">
+		select count(1) from data_dictionary where datacoding like
+		#{0}
+	</select>
+	<insert id="insertData" parameterType="Data_dictionary">
+		insert into
+		data_dictionary(dataname,datacoding,datavalue,dataremark,datatime,sid)
+		values(#{dataname},#{datacoding},#{datavalue},#{dataremark},#{datatime},#{sid})
+	</insert>
+
+	<delete id="deleteData" parameterType="int">
+		delete from
+		data_dictionary where dataid=#{0}
+	</delete>
+
+	<select id="updateDataById" parameterType="int" resultType="Data_dictionary">
+		select * from data_dictionary where dataid =#{0};
+	</select>
+	<update id="updateData" parameterType="Data_dictionary">
+	update data_dictionary set dataname=#{dataname},datacoding=#{datacoding},datavalue=#{datavalue},
+	dataremark=#{dataremark},datatime=#{datatime},sid=#{sid} where dataid=#{dataid}
+	</update>
+	
+</mapper>
+
+
+
+
+
+
+

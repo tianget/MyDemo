@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crm.dao.SellChanceDao">
+     
+    
+     
+     
+      <insert id="save" parameterType="sellChance" useGeneratedKeys="true" keyProperty="id">
+           insert into sellChance (chanceName,chanceType,chanceOrigin,chanceContent,enteringDate,enteringManId
+            ,lastUpdateManId,lastUpdateDate,state,remark)values(#{chanceName},#{chanceType},#{chanceOrigin},#{chanceContent},#{enteringDate},#{enteringManId},#{lastUpdateManId},#{lastUpdateDate},#{state},#{remark})
+      </insert>
+    
+      <select id="pageQuery" resultType="sellChance"   parameterType="java.util.Map" >
+            select sc.id,sc.chanceName,sc.chanceType,sc.chanceOrigin,sc.chanceContent,sc.enteringDate,sc.enteringManId,s.name as enteringManName
+            ,sc.lastUpdateManId,sc.state,sc.sid from sellChance sc inner join staff s on sc.enteringManId = s.sid       
+            <where>
+               <if test="staff.rid==2">
+                   (sc.enteringManId=#{staff.sid} AND sc.state=0)||(sc.sid=#{staff.sid} AND sc.state=1)
+               </if>
+               <if test="staff.rid==3">
+                   s.did=#{staff.did}
+               </if>
+               <if test="like!=null">
+                  AND sc.chanceName like #{like}
+               </if>
+            </where>
+            order by sc.id desc limit #{page},#{row} 
+      </select>
+      
+      <select id="getPageTotle" resultType="java.lang.Integer"   parameterType="java.util.Map" >
+           select count(1) from sellChance sc inner join staff s on sc.enteringManId = s.sid
+           <where>    
+               <if test="staff.rid==2">
+                   (sc.enteringManId=#{staff.sid} AND sc.state=0)||(sc.sid=#{staff.sid} AND sc.state=1)
+               </if>
+               <if test="staff.rid==3">
+                   s.did=#{staff.did}
+               </if>
+               <if test="like!=null">
+                  AND sc.chanceName like #{like}
+               </if>
+            </where>
+      </select>
+      
+      <delete id="delete" parameterType="int">
+          delete from linkMan where id=#{id}
+      </delete>
+      
+      <update id="update" parameterType="sellChance" >
+          update sellChance set chanceName=#{chanceName},chanceType=#{chanceType},chanceOrigin=#{chanceOrigin},chanceContent=#{chanceContent},lastUpdateManId=#{lastUpdateManId},lastUpdateDate=#{lastUpdateDate},remark=#{remark} where id=#{id}
+      </update>
+      
+      
+      
+      <select id="getSellChance" parameterType="int" resultType="sellChance">
+             select sc.id,sc.chanceName,sc.chanceType,sc.chanceOrigin,sc.chanceContent,sc.enteringDate,sc.enteringManId,s.name as enteringManName
+            ,sc.lastUpdateManId,sc.lastUpdateDate,st.name as lastUpdateManName,sc.state,sc.sid,sc.remark from sellChance sc inner join staff s on sc.enteringManId = s.sid 
+            inner join staff st on sc.lastUpdateManId = st.sid
+            where sc.id=#{id}
+      </select>
+      
+      
+      <select id="queryStaffs" resultType="staff" parameterType="int">
+            select sid,name,sex,did,rid,superiorId from staff where superiorId=#{id}
+      </select>
+      
+      <update id="allotChance" parameterType="sellChance">
+                 update sellChance set lastUpdateDate=#{lastUpdateDate},state=#{state},sid=#{sid},lastUpdateManId=#{lastUpdateManId} where id=#{id}
+      </update>
+</mapper>

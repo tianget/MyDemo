@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crm.dao.SellAnalysisDao">
+     
+    
+     
+     
+      
+    
+      <select id="pageQuery" resultType="SellAnalysis"   parameterType="java.util.Map" >
+            SELECT CONCAT(YEAR(o.otime),'-',MONTH(o.otime)) as thisMonth,IFNULL(SUM(og.order_money),0) sumMoney,
+			CONCAT(YEAR(o.otime)-1,'-',MONTH(o.otime)) lastyear,
+			CONCAT(YEAR(DATE_ADD(o.otime,INTERVAL -1 MONTH)),'-',month(DATE_ADD(o.otime,INTERVAL -1 MONTH))) lastmonth,
+			IFNULL((SELECT sum(og.order_money)  FROM `order` ord inner join order_goods  og on ord.oid=og.oid where 
+			 lastmonth=CONCAT(year(ord.otime),'-',month(ord.otime))),0)  lastMoney,
+			IFNULL((SELECT sum(og.order_money)  FROM `order` ord inner join order_goods  og on ord.oid=og.oid where 
+			 lastyear=CONCAT(year(ord.otime),'-',month(ord.otime))),0)  lastYearMoney
+			FROM `order` o 
+			left join order_goods  og on o.oid=og.oid
+			inner join client_member  cm on o.userid=cm.mid
+            inner join staff st  on cm.sid=st.sid
+            inner join department de on de.did=st.did
+            <where>
+                o.ostatus!=4 and (de.dnid=6 || de.did=6)
+	            <if test="staff.rid==3">
+	               AND st.did=#{staff.did}
+	            </if>
+	            <if test="like!=null">
+	              AND CONCAT(YEAR(o.otime),'-',MONTH(o.otime)) like #{like}
+	            </if>
+            </where>
+			GROUP BY  MONTH(o.otime),YEAR(o.otime) order by thisMonth asc limit #{page},#{row}
+      </select>
+      
+       <select id="getTotal" resultType="SellAnalysis" parameterType="java.util.Map" >
+			SELECT CONCAT(YEAR(o.otime),'-',MONTH(o.otime)) as thisMonth,SUM(og.order_money) sumMoney,
+			CONCAT(YEAR(o.otime)-1,'-',MONTH(o.otime)) lastyear,
+			CONCAT(YEAR(DATE_ADD(o.otime,INTERVAL -1 MONTH)),'-',month(DATE_ADD(o.otime,INTERVAL -1 MONTH))) lastmonth,
+			IFNULL((SELECT sum(og.order_money)  FROM `order` ord inner join order_goods  og on ord.oid=og.oid where 
+			 lastmonth=CONCAT(year(ord.otime),'-',month(ord.otime))),0)  lastMoney,
+			IFNULL((SELECT sum(og.order_money)  FROM `order` ord inner join order_goods  og on ord.oid=og.oid where 
+			 lastyear=CONCAT(year(ord.otime),'-',month(ord.otime))),0)  lastYearMoney
+			FROM `order` o 
+			left join order_goods  og on o.oid=og.oid
+			inner join client_member  cm on o.userid=cm.mid
+            inner join staff st  on cm.sid=st.sid
+            inner join department de on de.did=st.did
+            <where>
+               o.ostatus!=4 and (de.dnid=6 || de.did=6)
+	            <if test="staff.rid==3">
+	              AND st.did=#{staff.did}
+	            </if>
+	            <if test="like!=null">
+	              AND CONCAT(YEAR(o.otime),'-',MONTH(o.otime)) like #{like}
+	            </if>
+            </where>
+            GROUP BY  MONTH(o.otime),YEAR(o.otime)
+       </select>
+       
+       
+       <select id="queryDeptDate"  resultType="SellAnalysis" parameterType="java.lang.String">
+             SELECT CONCAT(YEAR(o.otime),'-',MONTH(o.otime)) as thisMonth,st.did,de.dshortname as deptName,CONCAT(YEAR(o.otime),'-',MONTH(o.otime)) `month`,IFNULL(SUM(og.order_money),0) sumMoney,
+				CONCAT(YEAR(o.otime)-1,'-',MONTH(o.otime)) lastyear,
+				CONCAT(YEAR(DATE_ADD(o.otime,INTERVAL -1 MONTH)),'-',month(DATE_ADD(o.otime,INTERVAL -1 MONTH))) lastmonth,
+				IFNULL((SELECT sum(og.order_money)  FROM `order` ord inner join order_goods  og on ord.oid=og.oid 
+				inner join client_member  cm on ord.userid=cm.mid
+				inner join staff sta  on cm.sid=sta.sid
+				where sta.did=st.did and lastmonth=CONCAT(year(ord.otime),'-',month(ord.otime))),0)  lastMoney,
+				IFNULL((SELECT sum(og.order_money)  FROM `order` ord inner join order_goods  og on ord.oid=og.oid 
+				inner join client_member  cm on ord.userid=cm.mid
+				inner join staff sta  on cm.sid=sta.sid
+				where sta.did=st.did and lastyear=CONCAT(year(ord.otime),'-',month(ord.otime))),0)  lastYearMoney
+				FROM `order` o 
+				left join order_goods  og on o.oid=og.oid
+				inner join client_member  cm on o.userid=cm.mid
+				inner join staff st  on cm.sid=st.sid
+				inner join department de  on de.did=st.did
+				WHERE CONCAT(YEAR(o.otime),'-',MONTH(o.otime))=#{month} and de.dnid=6
+				GROUP BY  st.did order by st.did asc;            
+       </select>
+       
+       
+      
+      <select id="queryEmpDate" resultType="SellAnalysis" parameterType="java.util.Map">
+           SELECT CONCAT(YEAR(o.otime),'-',MONTH(o.otime)) as thisMonth,st.did,st.sid,st.name as empName,de.dshortname,IFNULL(SUM(og.order_money),0) sumMoney,
+			CONCAT(YEAR(o.otime)-1,'-',MONTH(o.otime)) lastyear,
+			CONCAT(YEAR(DATE_ADD(o.otime,INTERVAL -1 MONTH)),'-',month(DATE_ADD(o.otime,INTERVAL -1 MONTH))) lastmonth,
+			IFNULL((SELECT sum(og.order_money)  FROM `order` ord inner join order_goods  og on ord.oid=og.oid 
+			inner join client_member  cm on ord.userid=cm.mid
+			inner join staff sta  on cm.sid=sta.sid
+			where sta.did=st.did and sta.sid=st.sid and lastmonth=CONCAT(year(ord.otime),'-',month(ord.otime))),0)  lastMoney,
+			IFNULL((SELECT sum(og.order_money)  FROM `order` ord inner join order_goods  og on ord.oid=og.oid 
+			inner join client_member  cm on ord.userid=cm.mid
+			inner join staff sta  on cm.sid=sta.sid
+			where sta.did=st.did and sta.sid=st.sid and lastyear=CONCAT(year(ord.otime),'-',month(ord.otime))),0)  lastYearMoney
+			FROM `order` o 
+			left join order_goods  og on o.oid=og.oid
+			inner join client_member  cm on o.userid=cm.mid
+			inner join staff st  on cm.sid=st.sid
+			inner join department de  on de.did=st.did
+			WHERE CONCAT(YEAR(o.otime),'-',MONTH(o.otime))=#{month} and de.dnid=6 and st.did=#{did}
+			GROUP BY  st.sid order by st.did asc
+      </select>
+     
+</mapper>

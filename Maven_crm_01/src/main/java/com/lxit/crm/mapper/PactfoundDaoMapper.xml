@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crm.dao.PactfoundDao">
+	<select id="getPactAll" resultType="com.lxit.crm.entities.Pact">
+		select * from pact
+	</select>
+	
+	<select id="getPactTableCount" parameterType="Pact" resultType="int">
+		select count(1) from pact
+		<where>
+			<if test="pname != null and pname != ''">
+				and pname like '%${pname}%'
+			</if>
+			<if test='ptype != "不限" and ptype != null'>
+				and ptype like #{ptype}
+			</if>
+			<if test='pstate != "不限" and pstate != null'>
+				and pstate like #{pstate}
+			</if>
+		</where>
+
+
+	</select>
+	<select id="pactPage" resultType="Pact"
+		parameterType="Map">
+		select * from pact
+		<where>
+			<if test="pname != null and pname != ''">
+				and pname like '%${pname}%'
+			</if>
+			<if test='ptype != "不限" and ptype != null'>
+				and ptype like #{ptype}
+			</if>
+			<if test='pstate != "不限" and pstate != null'>
+				and pstate like #{pstate}
+			</if>
+		</where>
+		limit ${pageIndex},${pageSize}
+	</select>
+	<insert id="insertpact" parameterType="Pact">
+		insert into
+		pact(pname,ptype,pstate,plasttime,ppeople,pmoney,pjia,pyi,poperatejia,poperateyi,pcontent,premarks,pchange,premove,passignment)
+		value(#{pname},#{ptype},'已订立',NOW(),NULL,#{pmoney},#{pjia},#{pyi},#{poperatejia},#{poperateyi},#{pcontent},#{premarks},NULL,NULL,NULL);
+	</insert>
+	
+	<select id="selectpact" parameterType="int" resultType="Pact">
+		SELECT pname,ptype,pmoney,pjia,pyi,poperatejia,poperateyi,pcontent,premarks FROM pact where pid=#{pid}
+	</select>
+	
+	<update id="updatepact" parameterType="int">
+		update pname=#{pname},ptype=#{ptype},pmoney=#{pmoney},pjia=#{pjia},pyi=#{pyi},poperatejia=#{poperatejia},poperateyi=#{poperateyi},pcontent=#{pcontent},premarks=#{premarks} where pid=#{pid}
+	</update>
+</mapper>

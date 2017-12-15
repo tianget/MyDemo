@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crm.dao.ServeDao">
+
+	<!-- 服务创建  -->
+	<resultMap type="Servereplenish" id="ServeAndRepl">
+		<id property="srid" column="srid"/>
+		<result column="sclient" property="sclient"/>
+		<result column="clientPhone" property="clientPhone"/>
+		<result column="scontent" property="scontent"/>
+		<result column="sremark" property="sremark"/>
+		<result column="handleResult" property="handleResult"/>
+		<result column="handleExplain" property="handleExplain"/>
+		<result column="ticklingResult" property="ticklingResult"/>
+		<result column="ticklingExplain" property="ticklingExplain"/>
+		<association property="serve" javaType="Serve">
+			<id property="sid" column="sid" />
+			<result property="sname" column="sname" />
+			<result property="stype" column="stype" />
+			<result property="sstatus" column="sstatus" />
+			<result property="screateTime" column="screateTime" />
+			<result property="slastTime" column="slastTime" />
+			<result property="screater" column="creater" />
+			<result property="shandler" column="handler" />
+			<result property="sallot" column="allot" />
+			<association property="staff" javaType="Staff">
+				<id property="sid" column="sid2" />
+				<result column="sdate" property="sdate"/>
+			</association>
+		</association>
+	</resultMap>
+	
+	<resultMap type="Serve" id="getServe">
+		<id property="sid" column="sid" />
+		<result property="sname" column="sname" />
+		<result property="stype" column="stype" />
+		<result property="sstatus" column="sstatus" />
+		<result property="screateTime" column="screateTime" />
+		<result property="slastTime" column="slastTime" />
+		<result property="screater" column="creater" />
+		<result property="shandler" column="handler" />
+		<result property="sallot" column="allot" />
+		<association property="staff" javaType="Staff">
+			<id property="sid" column="sid2"/>
+		</association>
+	</resultMap>
+	
+	<select id="getServeCount" resultType="int">
+		select count(1) from serve
+	</select>
+	<select id="getServeLikeCount" parameterType="Map" resultType="int">
+		select count(1) from (
+			select * from serve
+		  <where>
+				<if test="sname != null and sname != ''">
+					and sname like '%${sname}%'
+				</if> 
+				<if test='stype != "不限" and stype != null'>
+					and stype like #{stype}
+				</if>
+				<if test='sstatus != "不限" and sstatus != null'>
+					and sstatus = #{sstatus}
+				</if>
+				<if test="status == '不限'">
+					and screater = #{creater} or sallot=#{creater}
+				</if>
+				<if test='status == "已提交"'>
+					and sstatus = #{status} and screater = #{creater}
+					UNION
+select * from serve WHERE screater in
+(select sid from staff where rid=(select rid from role WHERE rname='销售代表' and did=(select did from staff where sid=#{creater}))
+													AND did=(select did from staff where sid=#{creater})) AND sstatus ='已提交'
+				</if>
+				<if test='status == "已分配" or status == "已处理"'>
+					and sstatus = #{status} and sallot=#{creater}
+				</if>
+				<if test='status == "已反馈"'><!-- 服务处理， -->
+					and sstatus = #{status} and sallot=#{creater}
+				</if>
+			</where>  
+			)s
+	</select>
+	<select id="servePage" parameterType="Map" resultMap="getServe">
+		select se.*,st1.sid as sid2,st1.name as creater,st2.name as handler,st3.name as allot from serve se 
+		left join staff st1 on st1.sid=se.screater
+		left join staff st2 on st2.sid=se.shandler
+		left join staff st3 on st3.sid=se.sallot
+			 <where>
+				<if test="sname != null and sname != ''">
+					and sname like '%${sname}%'
+				</if> 
+				<if test='stype != "不限" and stype != null'>
+					and stype like #{stype}
+				</if>
+				<if test='sstatus != "不限" and sstatus != null'>
+					and sstatus = #{sstatus}
+				</if>
+				<if test="status == '不限'">
+					and screater = #{creater} or sallot=#{creater}
+				</if>
+				<if test='status == "已提交"'><!-- 服务分配，只能由销售代表看已提交 ，可以分配销售代表创的和自己创的-->
+					and sstatus = #{status} and screater = #{creater} 
+					UNION
+select se.*,st1.sid as sid2,st1.name as creater,st2.name as handler,st3.name as allot from serve se 
+	left join staff st1 on st1.sid=se.screater
+		left join staff st2 on st2.sid=se.shandler
+		left join staff st3 on st3.sid=se.sallot
+ WHERE screater in
+(select sid from staff where rid=(select rid from role WHERE rname='销售代表' and did=(select did from staff where sid=#{creater}))
+													AND did=(select did from staff where sid=#{creater})) AND sstatus ='已提交'
+					<if test="sname != null and sname != ''">
+						and se.sname like '%${sname}%'
+					</if> 
+					<if test='stype != "不限" and stype != null'>
+						and se.stype like #{stype}
+					</if>
+					<if test='sstatus != "不限" and sstatus != null'>
+						and se.sstatus = #{sstatus}
+					</if>
+				</if>
+				<if test='status == "已分配" or status == "已处理"'> <!-- 得到服务分配的销售代表  -->
+					and sstatus = #{status} and sallot=#{creater}
+				</if>
+				<if test='status == "已反馈"'><!-- 服务处理， -->
+					and sstatus = #{status} and sallot=#{creater}
+				</if>
+			</where>  
+			order by slastTime desc
+		limit ${pageIndex},${pageSize}
+	</select>
+	<insert id="createServe" parameterType="Serve" useGeneratedKeys="true" keyProperty="sid">
+		INSERT into serve(SNAME,STYPE,SSTATUS,screateTime,slastTime,SCREATER,SHANDLER,SALLOT)VALUES(#{sname},#{stype},'新创建',NOW(),NOW(),#{staff.sid},NULL,NULL)
+	</insert> 
+	<insert id="createServeRe" parameterType="Servereplenish">
+		insert into servereplenish(sclient,clientPhone,scontent,sremark,handleResult,handleExplain,ticklingResult,ticklingExplain,sid)
+		values(#{sclient},#{clientPhone},#{scontent},#{sremark},NULL,NULL,NULL,NULL,#{serve.sid})
+	</insert>
+	<update id="updateServeStatus" parameterType="Map">
+		update serve set slastTime=NOW()
+		<if test="status != null">
+			,sstatus=#{status}
+		</if>
+		<if test="stype != null">
+			,stype=#{stype}
+		</if>
+		 where sid=#{sid}
+	</update>
+	<select id="lookServeById" parameterType="int" resultMap="ServeAndRepl">
+		select s.*,sr.*,st1.sid as sid2,st1.name as creater,st2.name as handler,st3.name as allot from servereplenish sr 
+		INNER JOIN serve s on s.sid=sr.sid
+		left join staff st1 on st1.sid=s.screater 
+		left join staff st2 on st2.sid=s.shandler 
+		left join staff st3 on st3.sid=s.sallot
+		WHERE s.sid=#{sid}
+	</select>
+	
+	<parameterMap type="java.util.Map" id="callServeParam">
+		<parameter property="id" mode="IN" jdbcType="INTEGER"/>
+	</parameterMap>
+	<select id="deleteCallServe" parameterMap="callServeParam" statementType="CALLABLE">
+          CALL deleteServe(?);
+    </select>  
+    
+    <!-- 服务分配,处理,反馈 -->
+    <update id="updateServereplenish" parameterType="Servereplenish" >
+    	update servereplenish set sid=#{serve.sid}
+    		<if test="scontent != null">
+    			,scontent=#{scontent}
+    		</if>
+    		<if test="sremark != null">
+    			,sremark=#{sremark}
+    		</if>
+    		<if test="handleResult != null">
+    			,handleResult=#{handleResult}
+    		</if>
+    		<if test="handleExplain != null">
+    			,handleExplain=#{handleExplain}
+    		</if>
+    		<if test="ticklingResult != null">
+    			,ticklingResult=#{ticklingResult}
+    		</if>
+    		<if test="ticklingExplain != null">
+    			,ticklingExplain=#{ticklingExplain}
+    		</if>
+    	where sid=#{serve.sid}
+    </update>
+    <!-- -->
+    <select id="getAllStand" resultType="Staff" parameterType="int">
+    	select sid,name from staff 
+    	WHERE rid in(select rid from role where rname='销售代表')
+    	and did in(select did from staff where sid=#{sid})
+    </select>
+    <update id="serveAllot" parameterType="Serve">
+    	update serve set shandler=${shandler},sallot=${sallot} where sid=${sid}
+    </update>
+    <select id="getAllClient" resultType="Client_member">
+    	select mid,name from Client_member
+    </select>
+     <select id="getClientPhone" parameterType="int" resultType="Client_member">
+    	select mid,name,phone from Client_member where mid=#{mid}
+    </select>
+    <select id="getStaffRole" resultType="Staff">
+    	select * from staff where rid in(select rid from role where rname='销售代表' or rname='销售经理')
+    </select>
+    <select id="getServeRoleCount" parameterType="Map" resultType="int">
+			select count(1) from serve
+		  <where>
+				<if test="sname != null and sname != ''">
+					and sname like '%${sname}%'
+				</if> 
+				<if test='stype != "不限" and stype != null'>
+					and stype like #{stype}
+				</if>
+				<if test='sstatus != "不限" and sstatus != null'>
+					and sstatus = #{sstatus}
+				</if>
+				 <if test='status == "已提交" or status == "已分配" or status == "已处理" or status == "已反馈"'>
+					and sstatus = #{status}
+				</if> 
+			</where>  
+	</select>
+	<select id="serveRolePage" parameterType="Map" resultMap="getServe">
+		select se.*,st1.sid as sid2,st1.name as creater,st2.name as handler,st3.name as allot from serve se 
+		left join staff st1 on st1.sid=se.screater
+		left join staff st2 on st2.sid=se.shandler
+		left join staff st3 on st3.sid=se.sallot
+			 <where>
+				<if test="sname != null and sname != ''">
+					and sname like '%${sname}%'
+				</if> 
+				<if test='stype != "不限" and stype != null'>
+					and stype like #{stype}
+				</if>
+				<if test='sstatus != "不限" and sstatus != null'>
+					and sstatus = #{sstatus}
+				</if>
+				<if test='status == "已提交" or status == "已分配" or status == "已处理" or status == "已反馈"'>
+					and sstatus = #{status}
+				</if> 
+			</where>  
+			order by slastTime desc
+		limit ${pageIndex},${pageSize}
+	</select>
+</mapper>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crm.dao.SellPerDao">
+     
+    
+     
+     
+      
+    
+      <select id="pageQuery" resultType="sellPerformance"   parameterType="java.util.Map" >
+            <choose>
+                <when test="staff.rid==4">
+                      select s.sid as empId,s.name as empName,de.dshortname as deptName,(
+						   select IFNULL(sum(order_money),0) as sumMoney from `order` o 
+							inner join order_goods og on og.oid=o.oid
+							inner join client_member cm on o.userid=cm.mid
+							inner join staff st on st.sid=cm.sid
+						  where s.did=st.did
+						) as sumMoney
+						 from staff s inner join department de on s.did=de.did  where s.superiorid=#{staff.sid}  
+						 <if test="like!=null">
+						   AND s.name like #{like}
+						 </if>
+                </when>
+                <otherwise>
+	                    select s.sid as empId,de.dshortname as deptName,s.name as empName,IFNULL(sum(order_money),0) as sumMoney from `order` o 
+						inner join order_goods og on og.oid=o.oid
+						inner join client_member cm on o.userid=cm.mid
+						inner join staff s on s.sid=cm.sid
+						inner join department de on s.did=de.did
+						where o.ostatus!=4 AND s.superiorid=#{staff.sid} and s.did=#{staff.did}
+						<if test="like!=null">
+						   AND s.name like #{like}
+						</if>
+						GROUP BY s.sid
+                </otherwise>
+            </choose>
+             limit #{page},#{row}
+      </select>
+      
+       <select id="getTotal" resultType="int" parameterType="java.util.Map" >
+			select count(1) from staff where  superiorid=#{staff.sid}
+       </select>
+       
+    
+       <select id="getBaseValue" resultType="java.lang.String" parameterType="java.lang.String">
+                select baseValue from base where basecoding=#{baseCoding}
+       </select>
+     
+</mapper>

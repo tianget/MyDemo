@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crm.dao.StatisticsDao">
+	<select id="statistics" resultType="statistics" parameterType="java.util.Map">
+		 <if test="operation=='client'">
+		    select count(1) client,CONCAT(year(cm.enteringDate),'-',month(cm.enteringDate)) month,
+			CONCAT(year(cm.enteringDate)-1,'-',month(cm.enteringDate)) lastyear,
+			CONCAT(year(DATE_ADD(cm.enteringDate,INTERVAL -1 month)),'-',month(DATE_ADD(cm.enteringDate,INTERVAL -1 month))) lastmonth,
+			CONCAT(ROUND((count(1)-(select count(1) from client_member cm2 where lastmonth=CONCAT(year(cm2.enteringDate),'-',month(cm2.enteringDate))))/count(1)*100,2),'%') loopThan,
+			CONCAT(ROUND((count(1)-(select count(1) from client_member cm2 where lastyear=CONCAT(year(cm2.enteringDate),'-',month(cm2.enteringDate))))/count(1)*100,2),'%') withThan
+            from client_member cm GROUP BY year(cm.enteringDate),month(cm.enteringDate)
+		 </if>
+		 <if test="operation=='lsClient'">
+		     select count(1) lsClient,CONCAT(year(cm.enteringDate),'-',month(cm.enteringDate)) month,
+			CONCAT(year(cm.enteringDate)-1,'-',month(cm.enteringDate)) lastyear,
+			CONCAT(year(DATE_ADD(cm.enteringDate,INTERVAL -1 month)),'-',month(DATE_ADD(cm.enteringDate,INTERVAL -1 month))) lastmonth,
+			CONCAT(ROUND((count(1)-(select count(1) from client_member cm2 where lastmonth=CONCAT(year(cm2.enteringDate),'-',month(cm2.enteringDate)) and status='流失'))/count(1)*100,2),'%') loopThan,
+			CONCAT(ROUND((count(1)-(select count(1) from client_member cm2 where lastyear=CONCAT(year(cm2.enteringDate),'-',month(cm2.enteringDate)) and status='流失'))/count(1)*100,2),'%') withThan
+			from client_member cm where status='流失' GROUP BY year(cm.enteringDate),month(cm.enteringDate)
+		 </if>
+		 <if test="operation=='contribute'">
+		    select IFNULL(ROUND(sum(og.order_money)/10000,2),0) contribute,CONCAT(year(cm.enteringDate),'-',month(cm.enteringDate)) month,
+			CONCAT(year(cm.enteringDate)-1,'-',month(cm.enteringDate)) lastyear,
+			CONCAT(year(DATE_ADD(cm.enteringDate,INTERVAL -1 month)),'-',month(DATE_ADD(cm.enteringDate,INTERVAL -1 month))) lastmonth,
+			IFNULL(CONCAT(ROUND((sum(og.order_money)-(select sum(og2.order_money) from client_member cm2 inner join `order` o2 on cm2.mid=o2.userid inner join order_goods og2 on o2.oid=og2.oid 
+			where lastmonth=CONCAT(year(cm2.enteringDate),'-',month(cm2.enteringDate)) and o2.ostatus!=4))/sum(og.order_money)*100,2),'%'),'00.00%') loopThan,
+			IFNULL(CONCAT(ROUND((sum(og.order_money)-(select sum(og2.order_money) from client_member cm2 inner join `order` o2 on cm2.mid=o2.userid inner join order_goods og2 on o2.oid=og2.oid 
+			where lastyear=CONCAT(year(cm2.enteringDate),'-',month(cm2.enteringDate)) and o2.ostatus!=4))/sum(og.order_money)*100,2),'%'),'00.00%') withThan
+			from client_member cm inner join `order` o on cm.mid=o.userid inner join order_goods og on o.oid=og.oid
+			where o.ostatus!=4
+			GROUP BY year(cm.enteringDate),month(cm.enteringDate)
+		 </if>
+		 <if test="operation=='serve'">
+		    select count(1) serve,CONCAT(year(cm.screateTime),'-',month(cm.screateTime)) month,
+			CONCAT(year(cm.screateTime)-1,'-',month(cm.screateTime)) lastyear,
+			CONCAT(year(DATE_ADD(cm.screateTime,INTERVAL -1 month)),'-',month(DATE_ADD(cm.screateTime,INTERVAL -1 month))) lastmonth,
+			CONCAT(ROUND((count(1)-(select count(1) from serve cm2 where lastmonth=CONCAT(year(cm2.screateTime),'-',month(cm2.screateTime))))/count(1)*100,2),'%') loopThan,
+			CONCAT(ROUND((count(1)-(select count(1) from serve cm2 where lastyear=CONCAT(year(cm2.screateTime),'-',month(cm2.screateTime))))/count(1)*100,2),'%') withThan
+			from serve cm GROUP BY year(cm.screateTime),month(cm.screateTime)
+		 </if>
+	</select>
+	
+</mapper>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crm.dao.ServeQuestionDao">
+
+	<resultMap type="Question" id="get">
+		<id property="qid" column="qid"/>
+		<result column="qtitle" property="qtitle"/>
+		<result column="qtype" property="qtype"/>
+		<result column="replyPoint" property="replyPoint"/>
+		<result column="qremark" property="qremark"/>
+		<result column="qcreateTime" property="qcreateTime"/>
+		<result column="qlastTime" property="qlastTime"/>
+		<result column="qcreater" property="qcreater"/>
+		<association property="staff" javaType="Staff">
+			 <id column="sid" property="sid"/>
+             <!-- <result column="name" property="name" /> -->
+		</association>
+	</resultMap>
+	<insert id="createQuestion" parameterType="Question">
+		insert into question(qtitle,qtype,replyPoint,qremark,qcreater,qcreateTime,qlastTime)
+					values(#{qtitle},#{qtype},#{replyPoint},#{qremark},#{staff.sid},NOW(),NOW())
+	</insert>
+	<delete id="deleteQuestion" parameterType="int">
+		delete from question where qid=#{qid}
+	</delete>
+	<select id="getQuestionById" parameterType="int" resultMap="get">
+		select qid,qtitle,qtype,replyPoint,qremark,qcreateTime,qlastTime,s.sid,s.name as qcreater from question q 
+		inner join staff s on s.sid = q.qcreater where qid=#{qid}
+	</select>
+	<!-- 标题一旦创建后不可更改 -->
+	<update id="modifiedQuestion" parameterType="Question">
+		update question set qtype=#{qtype},replyPoint=#{replyPoint},qremark=#{qremark},qlastTime=NOW() where qid=#{qid}
+	</update>
+	<select id="getPageLikeCount" parameterType="Question" resultType="int">
+		select count(1) from question 
+		<where>
+			<if test="qtitle != null and qtitle != ''">
+				and qtitle like '%${qtitle}%'
+			</if>
+			<if test='qtype != "不限" and qtype != null'>
+				and qtype like #{qtype}
+			</if>
+			and qcreater=#{staff.sid}
+		</where>
+	</select>
+	<select id="getPageLike" parameterType="Map" resultMap="get">
+		select qid,qtitle,qtype,replyPoint,qremark,qcreateTime,qlastTime,s.sid,s.name as qcreater from question q 
+		inner join staff s on s.sid = q.qcreater
+		<where>
+			<if test="qtitle != null and qtitle != ''">
+				and q.qtitle like '%${qtitle}%'
+			</if>
+			<if test='qtype != "不限" and qtype != null'>
+				and q.qtype like #{qtype}
+			</if>
+			and q.qcreater=#{creater}
+		</where>
+		order by qlastTime DESC 
+		limit ${pageIndex},${pageSize}
+	</select>
+</mapper>

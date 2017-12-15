@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crm.dao.SellPlanDao">
+     
+     <resultMap type="sellPlan" id="sellPlanResultMap">
+            <id column="planId" property="planId" />
+            <result column="coding" property="coding" />
+            <result column="planContent" property="planContent" />
+            <result column="planMonth" property="planMonth" />
+            <result column="state" property="state" />
+            <result column="lastOperationDate" property="lastOperationDate" />
+            <result column="planSaleroom" property="planSaleroom" />
+            
+      
+     </resultMap>
+     
+     
+      <insert id="save" parameterType="sellPlan" useGeneratedKeys="true" keyProperty="planId">
+           insert into sellPlan (coding,planManId,planContent,planMonth,state,lastOperationDate,operationManId,handlerManId,planSaleroom)values(#{coding},#{planManId},#{planContent},#{planMonth},#{state},#{lastOperationDate},#{operationManId},#{handlerManId},#{planSaleroom})
+      </insert>
+      
+      <select id="getPlanCoding"  parameterType="java.lang.String" resultType="SellPlan">
+            select sp.planId,sp.coding,sp.planContent,sp.planMonth,sp.state,sp.lastOperationDate,sp.planSaleroom,s.name as planName,s.sid as planManId from sellPlan sp inner join staff s on sp.planManId=s.sid where sp.coding=#{coding} 
+      </select>
+      <select id="pageQuery" resultType="SellPlan"   parameterType="java.util.Map" >
+            select  sp.planId,sp.coding,sp.planContent,sp.planMonth,sp.state,sp.lastOperationDate,sp.planSaleroom,s.name as planName,st.name as operationName,s.sid as planManId,sp.handlerManId,(select name from staff where sid=sp.handlerManId) as  handlerName
+            from sellPlan sp inner join staff s on sp.planManId=s.sid inner join staff st on sp.operationManId=st.sid 
+            <where>
+                <if test="like!=null">
+                  sp.coding like #{like} AND
+                </if>
+                <if test="staff.rid==2"> 
+                     sp.planManId=#{staff.sid}
+                </if> 
+               <if test="staff.rid==3">
+                     s.did=#{staff.did} AND  
+                     <choose>
+                        <when test="myPlan=='true'">
+                           sp.planManId=#{staff.sid}
+                        </when>
+                        <otherwise>
+                           sp.state != #{state}
+                        </otherwise>
+                     </choose>
+                </if>
+                <if test="staff.rid==4">
+                     sp.state != #{state}
+                </if>
+            </where>
+            order by  sp.planId desc limit #{page},#{rows} 
+      </select>
+      
+      <select id="getPageTotle" resultType="java.lang.Integer"   parameterType="java.util.Map" >
+            select count(1) from sellPlan sp inner join staff s on sp.operationManId=s.sid
+            <where>
+                <if test="like!=null">
+                  sp.coding like #{like} AND
+                </if>
+                <if test="staff.rid==2 ">
+                       sp.planManId=#{staff.sid}
+                </if> 
+                <if test="staff.rid==3">
+                     s.did=#{staff.did} AND  
+                     <choose>
+                        <when test="myPlan=='true'">
+                           sp.planManId=#{staff.sid}
+                        </when>
+                        <otherwise>
+                           sp.state != #{state}
+                        </otherwise>
+                     </choose>
+                </if>
+                <if test="staff.rid==4">
+                     sp.state != #{state}
+                </if>
+            </where>
+      </select>
+      
+      <delete id="delete" parameterType="int">
+          delete from sellPlan where planId=#{id}
+      </delete>
+      
+      <update id="update" parameterType="sellPlan" >
+          update sellPlan set planMonth=#{planMonth},planContent=#{planContent},planSaleroom=#{planSaleroom},lastOperationDate=#{lastOperationDate} where planId=#{planId}
+      </update>
+      
+      <update id="setState" parameterType="sellPlan" >
+          update sellPlan 
+          <set>
+             lastOperationDate=#{lastOperationDate},
+                        
+             <if test="state!=null">
+               state=#{state},
+             </if>
+             <choose>
+                 <when test="handlerManId!=0">
+                    handlerManId=#{handlerManId},
+                 </when>
+                 <otherwise>
+                    handlerManId=null,
+                 </otherwise>
+             </choose>
+             <if test="operationManId!=0">
+              operationManId=#{operationManId}
+             </if>
+          </set>
+          where planId=#{planId}
+      </update>
+      <select id="getStaff" parameterType="int" resultType="staff">
+            select sid,name,sex,did,rid,superiorId from staff where sid=#{id}
+      </select>
+      <select id="getSellPlan" parameterType="int" resultType="sellPlan">
+            select sp.planId,sp.coding,sp.planContent,sp.planMonth,sp.state,sp.lastOperationDate,sp.planSaleroom,s.name as planName,s.sid as planManId,s.sid as planManId,sp.handlerManId,(select name from staff where sid=sp.handlerManId) as handlerName
+             from sellPlan sp inner join staff s on sp.planManId=s.sid where sp.planId=#{id} 
+      </select>
+</mapper>

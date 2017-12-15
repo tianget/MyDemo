@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crm.dao.ClientPlanDao">
+	<resultMap type="clientPlan" id="plans"> 
+		<id column="id" property="pid" />
+		<result column="name" property="name" />
+		<result column="month" property="month" />
+		<!-- <result column="initdate" property="initDate" />
+		<result column="finishdate" property="finishDate" /> -->
+		<result column="s_name" property="s_name" />
+	</resultMap>
+	<select id="getRname" resultType="String" parameterType="int">
+		select r.rname from role r
+		LEFT JOIN staff s
+		on r.rid=s.rid
+		where s.sid =#{id}
+	</select>
+	
+	<select id="getPlanCount" resultType="int" parameterType="int">
+		select count(1) from client_plan c
+		<!-- LEFT JOIN staff s
+		on c.s_id=s.sid 
+		where s.sid =#{id}-->
+	</select>
+	<select id="rgetPlanCount" resultType="int" parameterType="int">
+		select count(1) from client_plan c
+		LEFT JOIN staff s
+		on c.s_id=s.sid
+		LEFT JOIN role r
+  	    on s.rid=r.rid
+		where s.sid =#{id} and r.rname='销售代表'
+	</select>
+	
+	<select id="getPlans" parameterType="Map" resultType="ClientPlan">
+		select c.pid as id,c.`name`,c.`month`,c.initDate,c.finishDate,s.`name` as s_name from client_plan c
+		LEFT JOIN staff s
+		on c.s_id=s.sid
+		<!-- where s.sid =#{id} -->
+        order by c.pid desc
+        limit #{pageIndex},#{pageSize}
+	</select>
+	<select id="rgetPlans" parameterType="Map" resultType="ClientPlan">
+		select c.pid as id,c.`name`,c.`month`,c.initDate,c.finishDate,s.`name` as s_name from client_plan c
+		LEFT JOIN staff s
+		on c.s_id=s.sid
+		LEFT JOIN role r
+  	    on s.rid=r.rid
+		where s.sid =#{id} and r.rname='销售代表'
+        order by c.pid desc
+        limit #{pageIndex},#{pageSize}
+	</select>
+	
+	<select id="getDate" resultMap="plans">
+		select c.pid as id,c.`name`,c.`month`,c.initDate,c.finishDate,s.`name` from client_plan c
+		LEFT JOIN staff s
+		on c.s_id=s.sid
+		where s.sid =#{id}
+		and c.`month`=#{month}
+        order by c.pid desc
+	</select>
+	
+	<insert id="setPlan" parameterType="ClientPlan">
+	    insert into client_plan (encode,`name`,`month`,initdate,finishdate,type,details,s_id) values(#{encode},#{name},#{month},#{initdate},#{finishdate},#{type},#{details},#{s_id});
+	</insert>
+	
+	<select id="getPlan" resultType="ClientPlan" parameterType="int">
+		select pid as id,encode,`name`,`month`,details FROM client_plan 
+		where pid=#{id}
+	</select>
+	
+	<update id="updatePlan" parameterType="ClientPlan">
+	  update client_plan set   
+	  encode=#{encode},name=#{name},month=#{month},details=#{details}
+	  where pid = #{id}
+	</update>
+	
+	<delete id="delete" parameterType="int">
+	  delete from client_plan where pid = #{id}
+	</delete>
+
+	
+</mapper>

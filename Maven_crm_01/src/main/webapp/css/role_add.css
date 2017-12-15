@@ -1,0 +1,11 @@
+#role_add_table{
+	width:500px;
+	height:300px;
+	margin: 0 auto;
+	margin-top: 80px;
+	padding-left: 50px;
+	background-color: #ccccff;
+}
+#role_add_table tr{
+	line-height: 25px;
+}

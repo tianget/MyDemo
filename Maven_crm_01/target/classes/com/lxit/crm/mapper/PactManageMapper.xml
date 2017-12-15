@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crm.dao.PactManageDao">
+	<select id="getPactById" parameterType="int" resultType="Pact">
+		select pid,pname,ptype,pstate,plasttime,ppeople,pmoney,pjia,pyi,poperatejia,poperateyi,poperateyi,pcontent,premarks,pchange,premove,passignment,s.name as poperator,pcreateTime
+		 from pact p left join Staff s on p.poperator=s.sid where p.pid=#{pid}
+	</select>
+	<update id="updatePactStatus" parameterType="Map">
+		update pact set plasttime=now(),pstate=#{pstate} where pid=#{pid}
+	</update>
+	<update id="pactInsepect" parameterType="Map">
+		update pact set pexamine=#{pexamine} where pid=#{pid}
+	</update>
+</mapper>

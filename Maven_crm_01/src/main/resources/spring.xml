@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:cache="http://www.springframework.org/schema/cache"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:jaxws="http://cxf.apache.org/jaxws" xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/aop
+   	   http://www.springframework.org/schema/aop/spring-aop.xsd
+       http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx.xsd
+       http://www.springframework.org/schema/cache
+       http://www.springframework.org/schema/cache/spring-cache.xsd
+       http://www.springframework.org/schema/jdbc
+       http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+       http://www.springframework.org/schema/util
+       http://www.springframework.org/schema/util/spring-util.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/mvc
+       http://www.springframework.org/schema/mvc/spring-mvc.xsd
+       http://cxf.apache.org/jaxws
+       http://cxf.apache.org/schemas/jaxws.xsd
+       http://cxf.apache.org/bindings/soap 
+	   http://cxf.apache.org/schemas/configuration/soap.xsd">
+
+	<context:component-scan base-package="com.lxit.crm" />
+	<!-- 配置c3p0连接池属性 -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		destroy-method="close">
+		<property name="driverClass" value="com.mysql.jdbc.Driver" />
+		<property name="jdbcUrl" value="jdbc:mysql://192.168.18.13:3306/crm" />
+		<property name="user" value="root" />
+		<property name="password" value="root" />
+		<!-- 队列中的最小连接数 -->
+		<property name="minPoolSize" value="15"></property>
+		<!-- 队列中的最大连接数 -->
+		<property name="maxPoolSize" value="25"></property>
+		<!-- 当连接耗尽时创建的连接数 -->
+		<property name="acquireIncrement" value="15"></property>
+		<!-- 等待时间 -->
+		<property name="checkoutTimeout" value="10000"></property>
+		<!-- 初始化连接数 -->
+		<property name="initialPoolSize" value="20"></property>
+		<!-- 最大空闲时间，超出时间连接将被丢弃 -->
+		<property name="maxIdleTime" value="20"></property>
+		<!-- 每隔60秒检测空闲连接 -->
+		<property name="idleConnectionTestPeriod" value="60000"></property>
+	</bean>
+	<!-- Spring扫描所有的mapper文件 -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!-- 设置连接池对象 -->
+		<property name="dataSource" ref="dataSource" />
+		<!-- Mappper所在的包路径 -->
+		<property name="mapperLocations" value="classpath:com/lxit/crm/mapper/*.xml" />
+		<!-- 指定mybatis的配置文件 -->
+		<property name="configLocation" value="classpath:mybatis.xml"></property>
+	</bean>
+	<!-- Spring 扫描DAO包 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<!-- DAO包所在的包路径 -->
+		<property name="basePackage" value="com.lxit.crm.dao" />
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+	</bean>
+	<!-- 配置事务 -->
+	<bean id="txManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	<!-- AOP切面拦截事务 -->
+	<aop:config>
+		<aop:pointcut id="serviceMethod"
+			expression="execution(* com.lxit.crm.service.*.*.*(..))" />
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="serviceMethod" />
+	</aop:config>
+
+	<!-- 事务的通知方式 -->
+	<tx:advice id="txAdvice" transaction-manager="txManager">
+		<tx:attributes>
+			<tx:method name="*" propagation="REQUIRED" read-only="true" />
+			<tx:method name="deleteCallServe*" read-only="false"
+				rollback-for="Exception" propagation="REQUIRED" />
+			<tx:method name="deleteQuestion*" read-only="false"
+				rollback-for="Exception" propagation="REQUIRED" />
+			<tx:method name="insertpact*" read-only="false"
+				rollback-for="Exception" propagation="REQUIRED" />
+		</tx:attributes>
+	</tx:advice>
+
+
+	<!-- 绑定job -->
+	<bean id="jobDetails"
+		class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
+		<!-- Job 类 -->
+		<property name="jobClass" value="com.lxit.crm.controller.MyJob" />
+		<property name="durability" value="true" />
+	</bean>
+	<!-- Cron触发器 -->
+	<bean id="cronTrigger"
+		class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<!-- job名称 -->
+		<property name="name" value="myJob" />
+		<!-- job组 -->
+		<property name="group" value="myGroup" />
+		<!-- 触发器绑定的JOB -->
+		<property name="jobDetail" ref="jobDetails" />
+		<!-- 表达式 -->
+		<property name="cronExpression" value="0 0/5 * * * ?" />
+	</bean>
+	
+	<!-- 0 15 10 L * ?	每月最后一天的10点15分触发 -->
+	<!-- 调度器 -->
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="triggers">
+			<list>
+				<ref bean="cronTrigger" />
+			</list>
+		</property>
+		<property name="autoStartup" value="true" />
+	</bean>
+
+	<!-- 配置memcache缓存 -->
+	<bean id="xMemcachedClientBuilder" class="net.rubyeye.xmemcached.XMemcachedClientBuilder">
+		<constructor-arg>
+			<list>
+				<bean class="java.net.InetSocketAddress">
+					<constructor-arg>
+						<value>127.0.0.1</value>
+					</constructor-arg>
+					<constructor-arg>
+						<value>11211</value>
+					</constructor-arg>
+				</bean>
+				<bean class="java.net.InetSocketAddress">
+					<constructor-arg>
+						<value>192.168.18.92</value>
+					</constructor-arg>
+					<constructor-arg>
+						<value>11211</value>
+					</constructor-arg>
+				</bean>
+			</list>
+		</constructor-arg>
+		<property name="connectTimeout" value="60000"></property>
+	</bean>
+	<bean id="memcachedClient" factory-bean="xMemcachedClientBuilder"
+		factory-method="build" destroy-method="shutdown" />
+	
+	<!-- <import resource="classpath:META-INF/cxf/cxf.xml" /> <jaxws:server 
+		serviceClass="com.lxit.crm.service.impl.GoodsServiceImpl" address="/selectByGid" 
+		serviceBean="#GoodsService" /> -->
+
+
+
+</beans>

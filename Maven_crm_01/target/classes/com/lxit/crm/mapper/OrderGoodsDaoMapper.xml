@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crm.dao.OrderGoodsDao">
+	<resultMap type="orderGoods" id="orderGoodsMap">
+		<id column="id" property="id" />
+		<result column="order_number" property="order_number" />
+		<result column="order_money" property="order_money" />
+		<result column="gid" property="gid" />
+		<result column="oid" property="oid" />
+		<result column="o_oid" property="o_oid" />
+		<result column="o_otype" property="o_otype" />
+		<result column="o_onum" property="o_onum" />
+		<result column="g_gname" property="g_gname" />
+		<result column="c_cname" property="c_cname" />
+		<result column="o_otime" property="o_otime" />
+		<result column="o_ostatus" property="o_ostatus" />
+		<result column="g_gtype" property="g_gtype" />
+		<result column="xiao" property="xiao" />
+		<result column="o_opayment" property="o_opayment" />
+		<result column="c_email" property="c_email" />
+		<result column="c_address" property="c_address" />
+		<result column="c_familyPhone" property="c_familyPhone" />
+		<result column="c_workPhone" property="c_workPhone" />
+		<result column="c_phone" property="c_phone" />
+		<result column="o_oinvoice" property="o_oinvoice" />
+		<association property="order" column="oid" javaType="Order">
+			<id column="oid" property="oid" />
+			<result column="otype" property="otype" />
+			<result column="onum" property="onum" />
+			<result column="opayment" property="opayment" />
+			<result column="otime" property="otime" />
+			<result column="oinvoice" property="oinvoice" />
+			<result column="ostatus" property="ostatus" />
+			<association property="member" column="userid" javaType="Client_member">
+				<id column="mid" property="mid" />
+				<result column="encode" property="encode" />
+				<result column="name" property="name" />
+				<result column="sex" property="sex" />
+				<result column="birth" property="birth" />
+				<result column="type" property="type" />
+				<result column="status" property="status" />
+				<result column="phone" property="phone" />
+				<result column="workPhone" property="workPhone" />
+				<result column="email" property="email" />
+				<result column="familyPhone" property="familyPhone" />
+			</association>
+		</association>
+		<association property="goods" column="gid" javaType="Goods">
+			<id column="gid" property="gid" />
+			<result column="gname" property="gname" />
+			<result column="gtype" property="gtype" />
+			<result column="gprice" property="gprice" />
+			<result column="gstock" property="gstock" />
+		</association>
+	</resultMap>
+	<select id="selectOrder" resultType="orderGoods">
+		select o1.oid as
+		o_oid,o1.otype as o_otype,o1.onum as o_onum,(select
+		group_concat(g2.gname) from order_goods g
+		inner join goods g2 on
+		g.gid=g2.gid where g.oid=o1.oid) as g_gname,
+		c.`name` as c_cname,
+		(select SUM(o2.order_money)
+		from order_goods o2 where
+		o2.oid=o1.oid)order_money,
+		o1.otime as o_otime,
+		case when o1.ostatus=1
+		then '等待付款'
+		when o1.ostatus=2 then '等待自提'
+		when o1.ostatus=3 then '等待收货'
+		when o1.ostatus=4 then '已完成'
+		when o1.ostatus=5 then '已取消'
+		end o_ostatus
+		from `order` o1
+		inner join client_member c on o1.userid=c.mid
+		where
+		(select group_concat(g2.gid) from order_goods g
+		inner join goods g2 on
+		g.gid=g2.gid where g.oid=o1.oid)
+		<if test="title!=null">
+			and c.`name`LIKE #{title} or o1.ostatus =#{title} OR
+			o1.otype LIKE #{title} or o1.onum like #{title}
+		</if>
+		<if test="tst!=null">
+			and o1.otime LIKE #{tst}
+		</if>
+		<if test="me!=null">
+			and o1.ostatus=#{me}
+		</if>
+
+		LIMIT #{pageIndex},#{pageSize}
+
+	</select>
+
+	<!-- 订单详细（商品信息） -->
+	<select id="selectById" resultType="orderGoods">
+		SELECT id,o.oid as o_oid,
+		(SELECT gs.gname
+		from goods gs WHERE gs.gid=g.gid )as g_gname,o.onum as
+		o_onum
+		,order_money,
+		(SELECT gs.gtype from goods gs WHERE gs.gid=g.gid
+		)as
+		g_gtype,order_number,
+		(order_money*order_number) as xiao
+		from
+		order_goods g INNER JOIN `order` o ON g.oid = o.oid WHERE o.oid=#{id}
+	</select>
+
+
+	<select id="selCounts" resultType="int">
+		SELECT count(DISTINCT m.oid )
+		from order_goods m LEFT jOIN `order` o ON
+		m.oid=o.oid
+	</select>
+
+	<select id="selectAllOrder" resultType="orderGoods">
+		select o1.oid as
+		o_oid,o1.otype as o_otype,o1.onum as o_onum,(select
+		group_concat(g2.gname) from order_goods g
+		inner join goods g2 on
+		g.gid=g2.gid where g.oid=o1.oid) as g_gname,
+		c.`name` as
+		c_cname,o1.opayment as o_opayment,c.email as
+		c_email,c.address as
+		c_address,c.familyPhone as c_familyPhone,
+		c.workPhone as
+		c_workPhone,c.phone as c_phone,o1.oinvoice as
+		o_oinvoice,
+		(select
+		SUM(o2.order_money)
+		from order_goods o2 where
+		o2.oid=o1.oid)order_money,
+		o1.otime as o_otime,
+		case when o1.ostatus=0
+		then '等待付款'
+		when o1.ostatus=1 then
+		'等待自提'
+		when o1.ostatus=2 then '等待收货'
+		when o1.ostatus=3 then '已完成'
+		when
+		o1.ostatus=4 then '已取消'
+		end o_ostatus
+		from `order` o1
+		inner join
+		client_member c on o1.userid=c.mid
+		where
+		(select group_concat(g2.gid)
+		from order_goods g
+		inner join goods g2 on
+		g.gid=g2.gid where
+		g.oid=o1.oid) AND o1.oid=#{id}
+	</select>
+
+	<select id="glist" resultType="orderGoods">
+		SELECT id,o.oid as o_oid,
+		(SELECT
+		gs.gname
+		from goods gs WHERE gs.gid=g.gid
+		)as g_gname,o.onum as
+		o_onum
+		,order_money,
+		(SELECT gs.gtype from goods gs
+		WHERE gs.gid=g.gid )as
+		g_gtype,order_number,
+		(order_money*order_number)
+		as xiao
+		from
+		order_goods
+		g INNER JOIN `order` o ON g.oid = o.oid
+	</select>
+
+	<insert id="addGoodsOrder">
+		INSERT INTO
+		order_goods(order_number,order_money,oid,gid)
+		VALUES
+		(#{order_number},#{order_money},#{oid},#{gid});
+	</insert>
+
+	<update id="updateSta" parameterType="int">
+		update `order` SET ostatus=3 WHERE oid =#{id}
+	</update>
+</mapper>

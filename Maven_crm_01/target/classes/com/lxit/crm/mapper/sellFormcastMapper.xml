@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crm.dao.SellForecastDao">
+     
+    
+     
+     
+      
+    
+      <select id="pageQuery" resultType="sellForecast"   parameterType="java.util.Map" >
+           select id,subject,month,type,generateDate,s.name as operationManName,sf.operationManId from sellforecast sf inner join staff s on sf.operationManId=s.sid
+           <where>
+               sf.operationManId=#{staff.sid}
+               <if test="like!=null">
+                 AND month like #{like}
+               </if>
+           </where>
+      </select>
+      
+       <select id="getTotal" resultType="int" parameterType="java.util.Map" >
+          select count(1) from sellforecast sf 
+           <where>
+               sf.operationManId=#{staff.sid}
+               <if test="like!=null">
+                 AND month like #{like}
+               </if>
+           </where>
+       </select>
+       
+      <select id="getEmpCount" parameterType="java.util.Map" resultType="int">
+              select COUNT(1) from staff where CONCAT(YEAR(sdate),'-',month(sdate))=#{month} 
+              <if test="state==1">
+                and did=#{did}
+              </if>
+      </select>
+      
+      <select id="getClientCount" parameterType="java.util.Map" resultType="int">
+            select COUNT(1) from client_member cm inner join staff s on cm.sid=s.sid
+            where CONCAT(YEAR(enteringDate),'-',month(enteringDate))=#{month} 
+            <if test="state==2">
+               and sid=#{sid}
+            </if>
+            <if test="state==1">
+               and s.did=#{did}
+            </if>
+      </select>
+      
+      
+      <select id="getSonDept" resultType="Department" parameterType="int">
+         select did,dshortname from department where dnid=#{did}||did=#{did}
+      </select>
+    
+       <insert id="setBaseValue"  parameterType="base">
+           insert into base(basecoding,basevalue,basedesc,baseremark,sid,basetime)
+		   values
+		   (#{basecoding},#{basevalue},#{basedesc},#{baseremark},#{sid},#{basetime})       
+       </insert>
+       
+       <insert id="saveSellForecast">
+             insert into sellforecast (subject,month,type,generateDate,operationManId,forecastResult,did,empId)
+             values(#{subject},#{month},#{type},#{generateDate},#{operationManId},#{forecastResult},#{did},#{empId})
+       </insert>
+       
+       
+       <select id="getSellForecasById" resultType="sellForecast" parameterType="int">
+       select id,subject,month,type,generateDate,s.name as operationManName,sf.operationManId,sf.did,(select dshortname from department where did=sf.did) as deptName,
+       sf.empid,(select name from staff where sid=sf.empid)  as empName,forecastResult
+       from sellforecast sf inner join staff s on sf.operationManId=s.sid
+       where sf.id=#{id}
+       </select>
+     
+</mapper>

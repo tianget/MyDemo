@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crm.dao.SellLinkManDao">
+     
+    
+     
+     
+      <insert id="save" parameterType="linkman" useGeneratedKeys="true" keyProperty="id">
+           insert into linkMan (name,sex,birthday,phone,workPhone,email,address,remark,enteringManId,enteringDate)values(#{name},#{sex},#{birthday},#{phone},#{workPhone},#{email},#{address},#{remark},#{enteringManId},#{enteringDate})
+      </insert>
+    
+      <select id="pageQuery" resultType="linkman"   parameterType="java.util.Map" >
+            select id,name,sex,birthday,phone,workPhone,email,address,remark,enteringManId,enteringDate from linkman where enteringManId=#{eid} 
+            AND name like #{like}
+            order by id desc limit #{page},#{row} 
+      </select>
+      
+      <select id="getPageTotle" resultType="java.lang.Integer"   parameterType="java.util.Map" >
+           select count(1) from linkman where enteringManId=#{eid}
+      </select>
+      
+      <delete id="delete" parameterType="int">
+          delete from linkMan where id=#{id}
+      </delete>
+      
+      <update id="update" parameterType="linkman" >
+          update linkman set name=#{name},sex=#{sex},birthday=#{birthday},phone=#{phone},workPhone=#{workPhone},email=#{email},address=#{address},remark=#{remark} where id=#{id}
+      </update>
+      
+      
+      
+      <select id="getLinkMan" parameterType="int" resultType="linkman">
+            select id,name,sex,birthday,phone,workPhone,email,address,remark,enteringManId,enteringDate
+             from linkMan where id=#{id} 
+      </select>
+</mapper>

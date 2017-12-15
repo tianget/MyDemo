@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crm.dao.ClientLovingDao">
+    <select id="getCount" resultType="int">
+      select count(1) as count from client_member
+    </select>
+    
+    <select id="getLovings" resultType="ClientLoving">
+    select m.mid,m.`name`,m.sex,m.type,sum(g.order_money) as count,s.overall,
+	(select count(1) from client_member m2
+	LEFT JOIN `order` o2
+	on m2.mid=o2.userid
+	where o2.ostatus='3' and m2.mid=m.mid) as acount,
+    (select count(1) from client_member m3
+	LEFT JOIN `order` o3
+	on m3.mid=o3.userid
+	where o3.ostatus='4' and m3.mid=m.mid) as ccount,
+	  r.scheme
+	from client_member m
+	LEFT JOIN client_remind r
+	on m.mid=r.mid
+	LEFT JOIN `order` o
+	on o.userid=m.mid
+	LEFT JOIN order_goods g
+	on o.oid=g.oid
+	LEFT JOIN client_satisficing s
+	on s.mid=m.mid
+	GROUP BY m.mid
+	limit #{pageIndex},#{pageSize}
+    </select>
+    
+    <select id="getLovdCount" resultType="int">
+      select count(1) from client_remind 
+    </select>
+    
+    <select id="getLovds" resultType="ClientRemind">
+      select r.rid,r.`name`,r.time,r.type,r.frequency,r.mid,r.take,r.scheme from client_remind r
+	  LEFT JOIN client_member m
+	  on m.mid=#{mid}
+	  limit #{pageIndex},#{pageSize}
+    </select>
+    
+    <select id="getLovddCount" resultType="int">
+      select count(1) from client_scheme 
+    </select>
+    
+    <select id="getLovdd" resultType="ClientScheme">
+      select s.scid,s.`name`,s.date,s.scheme,s.finallys,s.rid,s.mid from client_scheme s
+	  LEFT JOIN client_member m
+	  on s.mid=#{mid}
+	  limit #{pageIndex},#{pageSize}
+    </select>
+    
+    <insert id="addLovd" parameterType="ClientScheme">
+      insert into client_scheme (`name`,date,scheme,finallys,mid) values (#{name},#{date},#{scheme},#{finallys},#{mid});
+    </insert>
+    
+    <update id="updateLovd" parameterType="ClientScheme">
+      update client_scheme set   
+	  `name`=#{name},date=#{date},scheme=#{scheme},finallys=#{finallys},mid=#{mid}
+	  where scid = #{scid}
+    </update>
+    
+    <delete id="delLovd" parameterType="int">
+       delete from client_scheme where scid = #{scid}
+    </delete>
+</mapper>

@@ -1,0 +1,35 @@
+@CHARSET "UTF-8";
+#question_look{
+		margin:2px;
+		width: 700px;
+		height: 340px;
+		font-size: 14px;
+	}
+	#question_look_table{
+	    margin: auto;
+		margin-top:20px; 
+		width: 560px;	
+		padding-bottom: 0;
+		margin-button:0;	
+	}
+	#question_look_table input{
+		border:none; 
+	}
+	#question_look_table textarea{
+		margin-top:10px;
+		border:none; 
+	}
+	#question_look_table tr{
+		line-height: 30px;
+	}
+	#question_look_table td{
+		width: 110px;
+	}
+	.look_right{
+		text-align: right;
+		vertical-align:top;
+		width: 160px;
+		padding-right: 30px;
+		font-weight: bold;
+	}
+	

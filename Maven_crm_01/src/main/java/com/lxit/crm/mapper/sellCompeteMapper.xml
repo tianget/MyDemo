@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crm.dao.SellCompeteDao">
+     
+    
+     
+     
+      
+    
+      <select id="pageQuery" resultType="CompeteManager"   parameterType="java.util.Map" >
+           select id,cm.subject,type,generateDate,operationManId,s.name as operationManName,analysisDate,analysisResult,state 
+           from competemanager cm inner join staff s on cm.operationManId=s.sid
+           <where>
+               <if test="like!=null">
+                    analysisDate like #{like}
+               </if>
+           </where>
+           order by id desc limit #{page},#{row}
+      </select>
+      
+       <select id="getTotal" resultType="int" parameterType="java.util.Map" >
+          select count(1) 
+           from competemanager 
+           <where>
+               <if test="like!=null">
+                    analysisDate like #{like}
+               </if>
+           </where>
+       </select>
+       
+       
+       <select id="getSellComtepeById" resultType="CompeteManager"   parameterType="int" >
+           select id,cm.subject,type,generateDate,operationManId,s.name as operationManName,analysisDate,analysisResult,state 
+           from competemanager cm inner join staff s on cm.operationManId=s.sid
+          where id=#{id}
+      </select>
+       
+
+        <insert id="saveSellCompete" parameterType="CompeteManager">
+            insert into competemanager (subject,type,generateDate,operationManId,analysisDate,analysisResult,state) 
+            values(#{subject},#{type},#{generateDate},#{operationManId},#{analysisDate},#{analysisResult},#{state}) 
+        </insert>   
+        
+        <update id="updateSellCompete" parameterType="CompeteManager">
+           update competemanager set subject=#{subject},analysisDate=#{analysisDate},type=#{type} where id=#{id}
+        </update>  
+        
+        <update id="setState" parameterType="CompeteManager">
+           update competemanager set state=#{state} where id=#{id}
+        </update> 
+</mapper>

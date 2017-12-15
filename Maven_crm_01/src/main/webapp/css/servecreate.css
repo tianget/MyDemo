@@ -1,0 +1,118 @@
+@CHARSET "UTF-8";
+
+/*                         服务创建页面                                         */
+	.serve_listing{
+		/* text-align:right;
+		padding-right: 35px; */
+	}
+	#serve_create{
+		margin:2px;
+		width: 800px;
+		height: 360px;
+		font-size: 14px;
+		font-weight: bold;
+	}
+	#serve_create_table{
+	    margin: auto;
+		margin-top:20px; 
+		width: 560px;		
+	}
+	#serve_create_table input{
+		height: 20px;
+	}
+	#serve_create_table tr{
+		line-height: 43px;
+	}
+	#serve_create_table td{
+		/*width: 150px;*/
+		width: 110px;
+	}
+	.point_red{
+		padding-left:5px;
+		color: red;
+	}
+	.two_input{
+		width: 115px;
+	}
+	
+	
+/*                    服务查看页面                                      */
+	#serve_look{
+		margin:2px;
+		width: 700px;
+		height: 280px;
+		font-size: 14px;
+	}
+	.serve_look_table{
+   		margin: auto;
+		margin-top:20px; 
+		width: 530px;	
+		padding:20px;
+		padding-bottom: 0;
+		margin-button:0;
+	}
+	.serve_look_table input{
+		border:none;
+	}
+	.serve_look_table textarea{
+		border:none;
+	}
+	.serve_look_table tr{
+		line-height: 25px;
+	}
+	.serve_look_table td{
+		font-weight:bold;
+	}
+	.look_right{
+		text-align: right;
+		vertical-align:top;
+		width: 200px;
+		padding-right: 35px;
+		font-weight: bold;
+	}
+	.look_info{
+		
+	}
+	#look_gengduo input{
+		border:none;
+	}
+	#look_gengduo textarea{
+		border:none;
+	}
+	#look_gengduo{
+		margin: auto;
+		margin-top:20px; 
+		width: 520px;	
+		padding:20px;
+		padding-top: 0;
+		margin-top:0;
+	}
+	#look_gengduo tr{
+		line-height: 28px;
+	}
+	a:HOVER {
+	   color:none;
+	}
+	a:VISITED {
+	  color:none;
+	}
+	.a_slide{
+		
+		padding-left:30px;
+	}
+	.a_slide a{
+		color:#3399cc;
+		text-decoration : none;
+	}
+	
+	#serve_operate{
+		width: 550px;
+		font-size: 14px;
+		font-weight: bold;
+		padding:20px;
+		margin-left:90px;
+		margin-top:0;		
+	}
+	#serve_operate td{
+		width:100px;
+	}

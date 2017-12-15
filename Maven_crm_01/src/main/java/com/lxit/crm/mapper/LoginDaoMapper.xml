@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crm.dao.LoginDao">
+	 <resultMap type="Staff" id="staffMap">
+		<id column="sid" property="sid" />
+		<result column="name" property="name" />
+		<result column="sex" property="sex" />
+		<result column="sstate" property="sstate" />
+		<result column="did" property="did" />
+		<result column="rid" property="rid" />
+		<result column="password" property="password" />
+		<result column="sremark" property="sremark" />
+		<result column="sdate" property="sdate" />
+		<result column="czid" property="czid" />
+		<result column="nusername" property="nusername" />
+		<result column="iphonenumber" property="iphonenumber"/>
+		<association property="role" javaType="Role" column="rid">
+			<id column="rid" property="rid" />
+			<result column="rcoding" property="rcoding" />
+			<result column="rname" property="rname" />
+			<result column="czid" property="czid" />
+			<result column="did" property="did" />
+			<result column="rdate" property="rdate" />
+			<result column="rremark" property="rremark" />
+			<association property="department" javaType="Department"
+				column="did">
+				<id column="did" property="did" />
+				<result column="dcoding" property="dcoding" />
+				<result column="dshortname" property="dshortname" />
+				<result column="ddate" property="ddate" />
+				<result column="czid" property="czid" />
+				<result column="dallname" property="dallname" />
+				<result column="dintro" property="dintro" />
+				<result column="dremark" property="dremark" />
+			</association>
+		</association>
+	</resultMap>
+	<select id="login" parameterType="java.util.Map" resultMap="staffMap">
+		 select s.sid,s.name,s.iphonenumber,s.rid,r.rname,s.did,s.sstate,s.nusername,s.sdate,s.password,d.dshortname,d.dallname 
+		from staff s,role r,department d where s.rid=r.rid and r.did=d.did and s.nusername=#{name} 
+		and s.password=#{password} 		
+	</select>
+</mapper>

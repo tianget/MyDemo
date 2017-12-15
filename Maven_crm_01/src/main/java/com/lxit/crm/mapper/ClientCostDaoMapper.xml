@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crm.dao.ClientCostDao">
+	<select id="getPlanCount" resultType="Long">
+		select count(o.userid) from `order` o
+		where o.ostatus=3
+		GROUP BY o.userid
+	</select>
+	<select id="getPlans" parameterType="Map" resultType="Client_cost">      
+        <!-- select m.mid,m.`name`,m.sex,m.type,count(o.userid) as number,sum(o.oprice) as sum,s.`name` as sid from client_member m 
+		LEFT JOIN `order` o
+		on o.userid=m.mid
+		LEFT JOIN staff s
+		on s.sid=m.sid
+		where o.ostatus='已完成'
+		GROUP BY o.userid
+		order by m.mid desc
+        limit #{pageIndex},#{pageSize} -->
+	        select m.mid,m.`name`,m.sex,m.type,count(o.userid) as number,sum(g.order_money) as sum,s.`name` as sid from client_member m 
+			LEFT JOIN `order` o
+			on o.userid=m.mid
+			LEFT JOIN staff s
+			on s.sid=m.sid
+			LEFT JOIN order_goods g
+	   		on o.oid=g.oid
+			where o.ostatus=3
+			GROUP BY o.userid
+			order by m.mid desc
+	        limit #{pageIndex},#{pageSize}
+	</select>
+	
+	<select id="getMmember" parameterType="int" resultType="Client_member">
+	    select mid,encode,type,`name`,birth,sex,status,phone,workPhone,familyPhone,email,address,remarks from client_member
+		where mid=#{mid}	
+	</select>
+	<select id="getMorder" parameterType="int" resultType="Client_orders">
+		<!-- select o.oid as oid,onum,otype,opayment,g.order_money as oprice,otime,oinvoice,ostatus from `order` o
+		LEFT JOIN order_goods g
+	    on o.oid=g.oid
+		where userid=#{mid} -->
+		select o.oid as oid,onum as onum,otype as otype,opayment as opayment,g.order_money as oprice,otime as otime,oinvoice as oinvoice,ostatus as ostatus,m.`name` as mname from `order` o
+		LEFT JOIN order_goods g
+		on o.oid=g.oid
+		left JOIN client_member m
+	    on o.userid=m.mid
+		where userid=#{mid}
+	</select>
+</mapper>

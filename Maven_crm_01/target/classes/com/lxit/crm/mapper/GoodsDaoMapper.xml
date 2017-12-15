@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crm.dao.GoodsDao">
+	<resultMap type="goods" id="goodsMap">
+		<id column="gid" property="gid"></id>
+		<result column="gname" property="gname" />
+		<result column="gtype" property="gtype" />
+		<result column="gprice" property="gprice" />
+		<result column="gstock" property="gstock" />		
+	</resultMap>
+
+
+	<select id="getGoodsCount" resultType="int">
+		SELECT COUNT(1) FROM goods
+	</select>
+	
+	<select id="getSelectId" resultMap="goodsMap" >
+	SELECT gid,gname,gtype,gprice,gstock FROM goods where gid=#{gid}
+	</select>
+	
+	<select id="pageGoodsList" resultMap="goodsMap">
+		select * from goods LIMIT #{pageIndex},#{pageSize}
+	</select>
+
+	<insert id="insertGoods" parameterType="goods">
+		INSERT INTO
+		goods(gname,gtype,gprice,gstock)
+		VALUES(#{gname},#{gtype},#{gprice},#{gstock})
+	</insert>
+
+	<delete id="deleteGoods" parameterType="int">
+		DELETE FROM goods WHERE
+		gid=#{gid}
+	</delete>
+
+</mapper>

@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crm.dao.OrderDao">
+	<resultMap type="order" id="orderMap">
+		<id column="oid" property="oid" />
+		<result column="otype" property="otype" />
+		<result column="onum" property="onum" />
+		<result column="oprice" property="oprice" />
+		<result column="opayment" property="opayment" />
+		<result column="otime" property="otime" />
+		<result column="oinvoice" property="oinvoice" />
+		<result column="ostatus" property="ostatus" />
+		<result column="userName" property="userName" />
+
+		<result column="sum" property="sum" />
+		<result column="num" property="num" />
+		<result column="sname" property="sname" />
+		<result column="m_id" property="m_id" />
+		<result column="m_sex" property="m_sex" />
+		<result column="m_type" property="m_type" />
+		<result column="m_status" property="m_status" />
+
+		<result column="count" property="count" />
+		<result column="tim" property="tim" />
+		<result column="sumr" property="sumr" />
+		<result column="bas" property="bas" />
+		<result column="finish" property="finish" />
+
+
+		<result column="m_phone" property="m_phone" />
+		<result column="m_address" property="m_address" />
+
+		<association property="member" column="userid" javaType="Client_member">
+			<id column="mid" property="mid" />
+			<result column="encode" property="encode" />
+			<result column="name" property="name" />
+			<result column="sex" property="sex" />
+			<result column="birth" property="birth" />
+			<result column="type" property="type" />
+			<result column="status" property="status" />
+			<result column="phone" property="phone" />
+			<result column="workPhone" property="workPhone" />
+			<result column="email" property="email" />
+			<result column="familyPhone" property="familyPhone" />
+			<result column="address" property="address" />
+			<association property="staff" column="sid" javaType="Staff">
+				<id column="sid" property="sid" />
+				<result column="name" property="name" />
+				<result column="sex" property="sex" />
+				<result column="state" property="state" />
+				<result column="did" property="did" />
+				<result column="rid" property="rid" />
+				<result column="password" property="password" />
+				<result column="sremark" property="sremark" />
+				<result column="sdate" property="sdate" />
+				<result column="nusername" property="nusername" />
+				<result column="czid" property="czid" />
+			</association>
+		</association>
+	</resultMap>
+
+	<!-- <select id="selectOrder" resultMap="orderMap"> SELECT oid,otype,onum,FORMAT(oprice,2) 
+		as oprice,opayment,otime,ostatus,g.gname as gname,m.`name` as userName FROM 
+		`order` o LEFT JOIN goods g ON o.gid=g.gid INNER JOIN client_member m ON 
+		o.userid=m.mid </select> -->
+
+	<select id="getCount" resultType="int">
+		SELECT count(DISTINCT mid )
+		from client_member m RIGHT JOIN `order` o ON o.userid=m.mid
+	</select>
+
+	<select id="getTitleCount" resultType="int" parameterType="java.lang.String">
+		SELECT count(DISTINCT mid )
+		from client_member m RIGHT JOIN `order` o
+		ON o.userid=m.mid
+		where m.name like #{title}
+	</select>
+
+	<select id="pageList" resultType="order">
+		SELECT DISTINCT mid as m_id,`name` as userName,sex m_sex,type as
+		m_type,`status` m_status,m.address as m_address,m.phone as m_phone,
+		(SELECT COUNT(1) FROM `order` WHERE
+		userid=mid) as num,
+		(select
+		FORMAT(SUM(order_money),2) from
+		client_member c LEFT JOIN `order` o
+		on
+		o.userid=c.mid
+		inner JOIN
+		order_goods og on og.oid=o.oid where
+		o.userid=m_id) as sum,
+		(SELECT
+		`name` FROM staff WHERE sid=m.sid ) as
+		sname
+		from client_member
+		m
+		<if test="title!=null">
+			where m.`name` LIKE #{title}
+		</if>
+		limit #{pageIndex},#{pageSize}
+	</select>
+
+	<select id="getAllOr" resultType="order">
+		SELECT DISTINCT mid as
+		m_id,`name` as userName,sex m_sex,type as
+		m_type,`status`
+		m_status,m.address as m_address,m.phone as m_phone,
+		(SELECT COUNT(1)
+		FROM `order` WHERE
+		userid=mid) as num,
+		(select
+		FORMAT(SUM(order_money),2) from
+		client_member c LEFT JOIN `order` o
+		on
+		o.userid=c.mid
+		inner JOIN
+		order_goods og on og.oid=o.oid where
+		o.userid=m_id) as sum,
+		(SELECT
+		`name` FROM staff WHERE sid=m.sid ) as
+		sname
+		from client_member
+		m RIGHT
+		JOIN `order` o ON o.userid=m.mid where
+		mid=#{m_id}
+	</select>
+
+	<insert id="addOrder" useGeneratedKeys="true" keyProperty="oid">
+		INSERT INTO `order`(otype,onum,opayment,otime,oinvoice,ostatus,userid)
+		VALUES
+		(#{otype},#{onum},#{opayment},#{otime},#{oinvoice},#{ostatus},#{userid})
+	</insert>
+
+	<select id="selectStatis" resultType="order">
+		select
+		CONCAT(year(o.otime),'-',month(o.otime)) tim,
+		COUNT(1)
+		count,SUM(o1.order_money) sumr,
+		b.basevalue as bas,
+		FORMAT(((SUM(o1.order_money)/b.basevalue)*100),1) as finish
+		from
+		`order` o
+		INNER JOIN order_goods o1 ON o.oid=o1.oid inner join base b
+		on
+		CONCAT(year(o.otime),'-',month(o.otime))=b.basecoding
+		<if test="title1!=null">
+			and CONCAT(year(o.otime),'-',month(o.otime)) like #{title1}
+		</if>
+		<if test="title1==null">
+			group by year(o.otime),month(o.otime)
+		</if>
+		limit #{pageIndex},#{pageSize}
+	</select>
+
+	<!-- <select id="selnumSu" resultType="int"> SELECT COUNT(1) FROM base WHERE 
+		basecoding LIKE "20%" </select> -->
+
+</mapper>
